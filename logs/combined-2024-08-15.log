@@ -1,0 +1,11 @@
+{"level":"info","message":"Incoming request: POST /api/v1/users/register","service":"user-service","timestamp":"2024-08-15 16:56:52"}
+{"level":"info","message":"Incoming request: POST /api/v1/users/register","service":"user-service","timestamp":"2024-08-15 16:58:29"}
+{"level":"info","message":"Incoming request: POST /api/v1/users/register","service":"user-service","timestamp":"2024-08-15 16:58:58"}
+{"level":"info","message":"Incoming request: POST /api/v1/users/register","service":"user-service","timestamp":"2024-08-15 17:03:55"}
+{"level":"info","message":"Incoming request: POST /api/v1/users/register","service":"user-service","timestamp":"2024-08-15 17:04:01"}
+{"level":"info","message":"Incoming request: POST /api/v1/users/register","service":"user-service","timestamp":"2024-08-15 17:25:49"}
+{"level":"info","message":"Incoming request: GET /api/v1/users/resend-otp","service":"user-service","timestamp":"2024-08-15 18:23:19"}
+{"level":"info","message":"Incoming request: GET /api/v1/users/resend-otp","service":"user-service","timestamp":"2024-08-15 18:23:52"}
+{"level":"info","message":"Incoming request: GET /api/v1/users/resend-otp","service":"user-service","timestamp":"2024-08-15 18:24:13"}
+{"level":"info","message":"Incoming request: GET /api/v1/users/resend-otp","service":"user-service","timestamp":"2024-08-15 18:26:06"}
+{"level":"info","message":"Incoming request: POST /api/v1/users/resend-otp","service":"user-service","timestamp":"2024-08-15 18:26:17"}

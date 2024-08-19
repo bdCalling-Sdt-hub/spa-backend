@@ -1,0 +1,15 @@
+{"level":"info","message":"Incoming request: POST /api/v1/users/resend-otp","service":"user-service","timestamp":"2024-08-17 16:14:25"}
+{"level":"info","message":"Incoming request: POST /api/v1/users/forgot-password","service":"user-service","timestamp":"2024-08-17 16:20:05"}
+{"level":"info","message":"Incoming request: GET /api/v1/users//verify-code","service":"user-service","timestamp":"2024-08-17 16:55:51"}
+{"level":"info","message":"Incoming request: GET /api/v1/users//verify-code","service":"user-service","timestamp":"2024-08-17 16:56:04"}
+{"level":"info","message":"Incoming request: GET /api/v1/users/verify-code","service":"user-service","timestamp":"2024-08-17 16:56:14"}
+{"level":"info","message":"Incoming request: GET /api/v1/users/verify-code","service":"user-service","timestamp":"2024-08-17 16:58:49"}
+{"level":"info","message":"Incoming request: GET /api/v1/users/verify-code","service":"user-service","timestamp":"2024-08-17 17:02:22"}
+{"level":"info","message":"Incoming request: POST /api/v1/users/verify-code","service":"user-service","timestamp":"2024-08-17 17:04:02"}
+{"level":"info","message":"Incoming request: POST /api/v1/users/verify-code","service":"user-service","timestamp":"2024-08-17 17:04:37"}
+{"level":"info","message":"Incoming request: POST /api/v1/users/verify-code","service":"user-service","timestamp":"2024-08-17 17:05:32"}
+{"level":"info","message":"Incoming request: POST /api/v1/users/verify-code","service":"user-service","timestamp":"2024-08-17 17:06:04"}
+{"level":"info","message":"Incoming request: POST /api/v1/users/set-password","service":"user-service","timestamp":"2024-08-17 17:39:21"}
+{"level":"info","message":"Incoming request: POST /api/v1/users/set-password","service":"user-service","timestamp":"2024-08-17 17:40:14"}
+{"level":"info","message":"Incoming request: POST /api/v1/users/set-password","service":"user-service","timestamp":"2024-08-17 17:40:25"}
+{"level":"info","message":"Incoming request: POST /api/v1/users/set-password","service":"user-service","timestamp":"2024-08-17 17:58:35"}
