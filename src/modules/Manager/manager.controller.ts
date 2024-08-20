@@ -4,6 +4,9 @@ import userModel from "../User/user.model";
 import paginationBuilder from "../../utils/paginationBuilder";
 import serviceModel from "../services/service.model";
 import AppointmentModel from "../Customer/customer.model";
+import assignEmployeeModel from "../Manager/Model/employeeAssign.model";
+import notificationModel from "./Model/notification.model";
+import { io } from "../../server";
 
 const createManager = async (req: Request, res: Response) => {
   try {
@@ -343,7 +346,6 @@ const getService = async (req: Request, res: Response) => {
         data: service,
       })
     );
-
   } catch (error) {
     console.log("Error in getService controller: ", error);
     res.status(500).json(
@@ -359,7 +361,7 @@ const getService = async (req: Request, res: Response) => {
 const getAppointmentRequest = async (req: Request, res: Response) => {
   try {
     const user = req.userRole;
-    if(user !== "MANAGER") {
+    if (user !== "MANAGER") {
       return res.status(403).json(
         myResponse({
           statusCode: 403,
@@ -369,44 +371,46 @@ const getAppointmentRequest = async (req: Request, res: Response) => {
       );
     }
 
-      // Get pagination parameters from query, with default values
-      const currentPage = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 10;
-  
-      // Calculate the number of documents to skip
-      const skip = (currentPage - 1) * limit;
+    // Get pagination parameters from query, with default values
+    const currentPage = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
 
+    // Calculate the number of documents to skip
+    const skip = (currentPage - 1) * limit;
 
     const { id } = req.params;
-    const totalData = await AppointmentModel.countDocuments({service: id});
+    const totalData = await AppointmentModel.countDocuments({ service: id });
     const getAppointmentRequest = await AppointmentModel.find({
-      service: id}).skip(skip).limit(limit).populate("service user");
-      if(!getAppointmentRequest || getAppointmentRequest.length === 0) {
-        return res.status(404).json(
-          myResponse({
-            statusCode: 404,
-            status: "failed",
-            message: "Appointment request not found",
-          })
-        );
-      }
-       // Use paginationBuilder to get pagination details
+      service: id,
+    })
+      .skip(skip)
+      .limit(limit)
+      .populate("service user");
+    if (!getAppointmentRequest || getAppointmentRequest.length === 0) {
+      return res.status(404).json(
+        myResponse({
+          statusCode: 404,
+          status: "failed",
+          message: "Appointment request not found",
+        })
+      );
+    }
+    // Use paginationBuilder to get pagination details
     const pagination = paginationBuilder({
       totalData,
       currentPage,
       limit,
     });
 
-      return res.status(200).json(
-        myResponse({
-          statusCode: 200,
-          status: "success",
-          message: "Appointment request fetched successfully",
-          data: getAppointmentRequest,
-          pagination,
-        })
-      );
-
+    return res.status(200).json(
+      myResponse({
+        statusCode: 200,
+        status: "success",
+        message: "Appointment request fetched successfully",
+        data: getAppointmentRequest,
+        pagination,
+      })
+    );
   } catch (error) {
     console.log("Error in getAppointmentRequest controller: ", error);
     res.status(500).json(
@@ -416,9 +420,115 @@ const getAppointmentRequest = async (req: Request, res: Response) => {
         message: "Internal Server Error",
       })
     );
-    
   }
-}
+};
+
+const assignEmployee = async (req: Request, res: Response) => {
+  try {
+    const userRole = req.userRole;
+    const userId = req.userId;
+    if (userRole !== "MANAGER") {
+      return res.status(403).json(
+        myResponse({
+          statusCode: 403,
+          status: "failed",
+          message: "You are not authorized to perform this action",
+        })
+      );
+    }
+
+    const { employeeId, appointmentId } = req.body;
+    if (!employeeId || !appointmentId) {
+      return res.status(400).json(
+        myResponse({
+          statusCode: 400,
+          status: "failed",
+          message: "All fields are required",
+        })
+      );
+    }
+
+    const assignEmployee = await assignEmployeeModel.create({
+      managerId:userId,
+      employeeId,
+      appointmentId,
+    });
+
+
+    if (!assignEmployee) {
+      return res.status(400).json(
+        myResponse({
+          statusCode: 400,
+          status: "failed",
+          message: "Failed to assign employee",
+        })
+      );
+    }
+
+    const updateAppointmentStatus = await AppointmentModel.findByIdAndUpdate(
+      appointmentId,
+      { status: "ASSIGNED" },
+      { new: true }
+    ) 
+
+    if (!updateAppointmentStatus) {
+      return res.status(400).json(
+        myResponse({
+          statusCode: 400,
+          status: "failed",
+          message: "Failed to update appointment status",
+        })
+      );
+    } 
+
+    const employeeName = await userModel.findById(employeeId).select("name");
+
+    if(!employeeName) {
+      return res.status(400).json(
+        myResponse({
+          statusCode: 400,
+          status: "failed",
+          message: "Failed to fetch employee name",
+        })
+      );
+    }
+
+
+    const notificationForEmployee = await notificationModel.create({
+      message: `${req.user.name} appointment has been assigned to ${employeeName.name}`,
+      role: "EMPLOYEE",
+      recipientId: employeeId,
+    })
+
+
+    io.emit(`notification::${employeeId}`, notificationForEmployee);
+    // console.log(socket);
+    
+
+
+    return res.status(200).json(
+      myResponse({
+        statusCode: 200,
+        status: "success",
+        message: "Employee assigned successfully",
+        data: assignEmployee,
+      })
+    );
+
+
+    
+  } catch (error) {
+    console.log("Error in AssignEmployee controller: ", error);
+    res.status(500).json(
+      myResponse({
+        statusCode: 500,
+        status: "failed",
+        message: "Internal Server Error",
+      })
+    );
+  }
+};
+
 
 
 
@@ -430,5 +540,6 @@ export {
   getEmployees,
   getSingleEmployee,
   getService,
-  getAppointmentRequest
+  getAppointmentRequest,
+  assignEmployee
 };

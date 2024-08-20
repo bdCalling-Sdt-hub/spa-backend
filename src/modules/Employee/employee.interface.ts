@@ -10,5 +10,10 @@ interface IAttendance {
     totalWorkingHours: number;
 }
 
+interface IUnableService {
+    reason: string;
+    assignAppointmentId: Types.ObjectId;
+}
 
-export default IAttendance;
+
+export { IAttendance,IUnableService};

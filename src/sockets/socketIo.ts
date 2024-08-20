@@ -1,5 +1,5 @@
-const socketIo = (io) => {
-  io.on("connection", (socket) => {
+const socketIo = (io: any) => {
+  io.on("connection", (socket: any) => {
     console.log(`ID: ${socket.id} just connected`);
 
     socket.on("disconnect", () => {
@@ -7,3 +7,7 @@ const socketIo = (io) => {
     });
   });
 };
+
+
+
+export default socketIo

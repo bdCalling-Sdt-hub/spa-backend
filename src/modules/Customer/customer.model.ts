@@ -41,7 +41,7 @@ const appointmentSchema: Schema = new mongoose.Schema(
       minlength: 3,
       trim: true,
     },
-    AppointmentDate: {
+    appointmentDate: {
       type: Date,
       required: [true, "Date is required"],
       trim: true,

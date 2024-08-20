@@ -6,8 +6,11 @@ import config from "./config";
 import { Server as SocketIo } from "socket.io";
 import DailyData from "./modules/Employee/employee.model";
 import cron from "node-cron";
+import socketIo from "./sockets/socketIo";
 
 let server: Server;
+let io: SocketIo;
+
 
 async function main() {
   try {
@@ -16,12 +19,17 @@ async function main() {
     server = app.listen(config.port, () => {
       console.log(`Server is running on ${config.port}`);
     });
-    const io = new SocketIo(server, {
+   
+    // (global as any).io = io;
+     io = new SocketIo(server, {
       cors: {
         origin: "*",
       },
     });
-    (global as any).io = io;
+ (global as any).io = io;
+
+ socketIo(io)
+   
   } catch (error) {
     console.log(error);
   }
@@ -29,30 +37,13 @@ async function main() {
 
 main();
 
-// const createDailyData = async () => {
-//   const today = new Date().toISOString().split('T')[0]; // Get today's date in YYYY-MM-DD format
+export {io}
 
-//   const newDailyData = new DailyData({
-//     date: new Date(today), // Set today's date
-//   });
 
-//   try {
-//     const savedData = await newDailyData.save();
-//     console.log('New daily data created:', savedData);
-//     return savedData;
-//   } catch (err) {
-//     console.error('Error creating daily data:', err);
-//     throw err;
-//   }
-// };
 
-// // Schedule the task to run every day at midnight
-// cron.schedule('0 0 * * *', () => {
-//   console.log('Running daily task at midnight');
-//   createDailyData().catch(err => {
-//     console.error('Failed to create daily data during scheduled task:', err)
-//   })
-// });
+
+
+
 
 process.on("unhandledRejection", (err) => {
   console.log(`😈 unahandledRejection is detected , shutting down ...`, err);

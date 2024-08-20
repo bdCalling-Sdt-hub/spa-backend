@@ -1,5 +1,10 @@
 {
   "compilerOptions": {
+    "typeRoots": ["./node_modules/@types", "./src/types"],
+    "baseUrl": "./",
+    "paths": {
+      "@/*": ["src/*"]
+    },
    
     /* Visit https://aka.ms/tsconfig to read more about this file */
 
@@ -104,7 +109,8 @@
 
     /* Completeness */
     // "skipDefaultLibCheck": true,                      /* Skip type checking .d.ts files that are included with TypeScript. */
-    "skipLibCheck": true,                                 /* Skip type checking all .d.ts files. */
+    "skipLibCheck": true,  
+    // "typeRoots": ["./node_modules/@types", "./src/types"]                               /* Skip type checking all .d.ts files. */
   },
-  "include": ["src/**/*.ts", "src/global.d.ts"]
+  "include": ["./src/**/*.ts", "./src/global.d.ts"]
 }

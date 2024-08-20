@@ -20,14 +20,14 @@ const createAppointment = async (req: Request, res: Response) => {
       customerEmail,
       customerAddress,
       customerPhone,
-      AppointmentDate,
+      appointmentDate,
       appointmentNote,
     }:{
       serviceId: Types.ObjectId;
       customerEmail: string;
       customerAddress: string;
       customerPhone: string;
-      AppointmentDate: Date;
+      appointmentDate: Date;
       appointmentNote: string;
     } = req.body;
 
@@ -36,7 +36,7 @@ const createAppointment = async (req: Request, res: Response) => {
       !customerEmail ||
       !customerAddress ||
       !customerPhone ||
-      !AppointmentDate ||
+      !appointmentDate ||
       !appointmentNote
     ) {
       return res.status(400).json(
@@ -54,7 +54,7 @@ const createAppointment = async (req: Request, res: Response) => {
       customerEmail,
       customerAddress,
       customerPhone,
-      AppointmentDate,
+      appointmentDate,
       appointmentNote,
     });
 

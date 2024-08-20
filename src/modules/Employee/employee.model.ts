@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import IAttendance from "./employee.interface";
+import {IAttendance} from "./employee.interface";
 
 const createMidnightDate = (): Date => {
     const date = new Date();
