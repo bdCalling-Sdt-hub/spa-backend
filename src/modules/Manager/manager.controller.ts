@@ -7,6 +7,7 @@ import AppointmentModel from "../Customer/customer.model";
 import assignEmployeeModel from "../Manager/Model/employeeAssign.model";
 import notificationModel from "./Model/notification.model";
 import { io } from "../../server";
+import unableServiceModel from "../Employee/model/unableService.model";
 
 const createManager = async (req: Request, res: Response) => {
   try {
@@ -382,6 +383,7 @@ const getAppointmentRequest = async (req: Request, res: Response) => {
     const totalData = await AppointmentModel.countDocuments({ service: id });
     const getAppointmentRequest = await AppointmentModel.find({
       service: id,
+      appointmentStatus: "PENDING",
     })
       .skip(skip)
       .limit(limit)
@@ -449,11 +451,10 @@ const assignEmployee = async (req: Request, res: Response) => {
     }
 
     const assignEmployee = await assignEmployeeModel.create({
-      managerId:userId,
+      managerId: userId,
       employeeId,
       appointmentId,
     });
-
 
     if (!assignEmployee) {
       return res.status(400).json(
@@ -469,7 +470,7 @@ const assignEmployee = async (req: Request, res: Response) => {
       appointmentId,
       { status: "ASSIGNED" },
       { new: true }
-    ) 
+    );
 
     if (!updateAppointmentStatus) {
       return res.status(400).json(
@@ -479,11 +480,11 @@ const assignEmployee = async (req: Request, res: Response) => {
           message: "Failed to update appointment status",
         })
       );
-    } 
+    }
 
     const employeeName = await userModel.findById(employeeId).select("name");
 
-    if(!employeeName) {
+    if (!employeeName) {
       return res.status(400).json(
         myResponse({
           statusCode: 400,
@@ -493,18 +494,14 @@ const assignEmployee = async (req: Request, res: Response) => {
       );
     }
 
-
     const notificationForEmployee = await notificationModel.create({
       message: `${req.user.name} appointment has been assigned to ${employeeName.name}`,
       role: "EMPLOYEE",
       recipientId: employeeId,
-    })
-
+    });
 
     io.emit(`notification::${employeeId}`, notificationForEmployee);
     // console.log(socket);
-    
-
 
     return res.status(200).json(
       myResponse({
@@ -514,9 +511,6 @@ const assignEmployee = async (req: Request, res: Response) => {
         data: assignEmployee,
       })
     );
-
-
-    
   } catch (error) {
     console.log("Error in AssignEmployee controller: ", error);
     res.status(500).json(
@@ -529,9 +523,213 @@ const assignEmployee = async (req: Request, res: Response) => {
   }
 };
 
+const getUnableServiceRequest = async (req: Request, res: Response) => {
+  try {
+    const userRole = req.userRole;
+    const userId = req.userId;
+    console.log(userId);
 
+    if (userRole !== "MANAGER") {
+      return res.status(403).json(
+        myResponse({
+          statusCode: 403,
+          status: "failed",
+          message: "You are not authorized to perform this action",
+        })
+      );
+    }
 
+    const getUnableServiceRequestList = await unableServiceModel
+      .find({
+        managerId: userId,
+        isDeny: false,
+      })
+      .populate({
+        path: "assignAppointmentId",
+        populate: [
+          {
+            path: "managerId",
+          },
+          {
+            path: "employeeId",
+          },
+          {
+            path: "appointmentId",
+          },
+        ],
+      });
 
+    if (
+      !getUnableServiceRequestList ||
+      getUnableServiceRequestList.length === 0
+    ) {
+      return res.status(404).json(
+        myResponse({
+          statusCode: 404,
+          status: "failed",
+          message: "Unable service request not found",
+        })
+      );
+    }
+
+    res.status(200).json(
+      myResponse({
+        statusCode: 200,
+        status: "success",
+        message: "Unable service request fetched successfully",
+        data: getUnableServiceRequestList,
+      })
+    );
+  } catch (error) {
+    console.log("Error in getUnableServiceRequest controller: ", error);
+    res.status(500).json(
+      myResponse({
+        statusCode: 500,
+        status: "failed",
+        message: "Internal Server Error",
+      })
+    );
+  }
+};
+
+const unableServiceStatus = async (req: Request, res: Response) => {
+  try {
+    const userRole = req.userRole;
+    if (userRole !== "MANAGER") {
+      return res.status(403).json(
+        myResponse({
+          statusCode: 403,
+          status: "failed",
+          message: "You are not authorized to perform this action",
+        })
+      );
+    }
+    const { status }: { status: string } = req.body;
+    const { id } = req.query;
+    console.log(status, id);
+
+    if (!id) {
+      return res.status(400).json(
+        myResponse({
+          statusCode: 400,
+          status: "failed",
+          message: "Please provide Unable service id",
+        })
+      );
+    }
+
+    if (!status) {
+      return res.status(400).json(
+        myResponse({
+          statusCode: 400,
+          status: "failed",
+          message: "All fields are required",
+        })
+      );
+    }
+    if (status === "deny") {
+      const updateUnableService = await unableServiceModel.findByIdAndUpdate(
+        id,
+        {
+          isDeny: true,
+        }
+      );
+
+      if (!updateUnableService) {
+        return res.status(404).json(
+          myResponse({
+            statusCode: 404,
+            status: "failed",
+            message: "Unable service request Failed",
+          })
+        );
+      }
+
+      const notificationForEmployee = await notificationModel.create({
+        message: `Unable service request has been denied`,
+        role: "EMPLOYEE",
+        recipientId: updateUnableService.employeeId,
+      });
+      io.emit(
+        `notification::${updateUnableService.employeeId}`,
+        notificationForEmployee
+      );
+
+      res.status(200).json(
+        myResponse({
+          statusCode: 200,
+          status: "success",
+          message: "Unable service request denied successfully",
+          data: updateUnableService,
+        })
+      );
+    }
+
+    if (status === "approve") {
+      const getUnableService = await unableServiceModel.findById(id);
+
+      if (!getUnableService) {
+        return res.status(404).json(
+          myResponse({
+            statusCode: 404,
+            status: "failed",
+            message: "Unable service request Failed",
+          })
+        );
+      }
+
+      console.log(getUnableService.assignAppointmentId);
+      
+      const softDeleteAssignAppointment =
+        await assignEmployeeModel.findByIdAndUpdate(
+          getUnableService.assignAppointmentId._id,
+          {
+            isDelete: true,
+          }
+        );
+        console.log(softDeleteAssignAppointment);
+        
+
+      if (!softDeleteAssignAppointment) {
+        return res.status(404).json(
+          myResponse({
+            statusCode: 404,
+            status: "failed",
+            message: "Unable service request Failed",
+          })
+        );
+      }
+
+      const notificationForEmployee = await notificationModel.create({
+        message: `Unable service request has been denied`,
+        role: "EMPLOYEE",
+        recipientId: getUnableService.employeeId,
+      });
+      io.emit(
+        `notification::${getUnableService.employeeId}`,
+        notificationForEmployee
+      );
+
+      res.status(200).json(
+        myResponse({
+          statusCode: 200,
+          status: "success",
+          message: "Unable service request approved successfully",
+          data: softDeleteAssignAppointment,
+        })
+      );
+    }
+  } catch (error) {
+    console.log("Error in unableServiceStatus controller: ", error);
+    res.status(500).json(
+      myResponse({
+        statusCode: 500,
+        status: "failed",
+        message: "Internal Server Error",
+      })
+    );
+  }
+};
 
 export {
   createManager,
@@ -541,5 +739,7 @@ export {
   getSingleEmployee,
   getService,
   getAppointmentRequest,
-  assignEmployee
+  assignEmployee,
+  getUnableServiceRequest,
+  unableServiceStatus
 };

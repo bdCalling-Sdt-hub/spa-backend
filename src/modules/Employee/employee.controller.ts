@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
 import myResponse from "../../utils/Response";
-import {IAttendance} from "./employee.interface";
+import { IAttendance } from "./employee.interface";
 import attendanceModel from "./employee.model";
-import cron from "node-cron";
 import employeeAssignModel from "../Manager/Model/employeeAssign.model";
 import paginationBuilder from "../../utils/paginationBuilder";
 import unableServiceModel from "./model/unableService.model";
 import notificationModel from "../Manager/Model/notification.model";
+import appointmentModel from "../Customer/customer.model";
 import { io } from "../../server";
 const calculateTotalWorkingHours = (
   attendance: Partial<IAttendance>
@@ -189,20 +189,21 @@ const getAssignAppointment = async (req: Request, res: Response) => {
       {
         $match: {
           employeeId: userId,
+          isDelete: false,
         },
       },
       // Step 2: Lookup to populate the appointmentId field
       {
         $lookup: {
-          from: 'appointments', // The name of the appointment collection
-          localField: 'appointmentId',
-          foreignField: '_id',
-          as: 'appointmentDetails',
+          from: "appointments", // The name of the appointment collection
+          localField: "appointmentId",
+          foreignField: "_id",
+          as: "appointmentDetails",
         },
       },
       // Step 3: Unwind the appointmentDetails array
       {
-        $unwind: '$appointmentDetails',
+        $unwind: "$appointmentDetails",
       },
     ];
 
@@ -212,11 +213,14 @@ const getAssignAppointment = async (req: Request, res: Response) => {
       const startOfDay = new Date(search.setHours(0, 0, 0, 0));
       const endOfDay = new Date(search.setHours(23, 59, 59, 999));
 
+      console.log(startOfDay, endOfDay, search);
+      
+
       // Step 4: Add a match stage for the specific AppointmentDate if searchDate is provided
       pipeline.push({
         $match: {
-          'appointmentDetails.AppointmentDate': {
-            $gte: startOfDay,
+          "appointmentDetails.AppointmentDate": {
+            // $gte: startOfDay,
             $lte: endOfDay,
           },
         },
@@ -226,7 +230,7 @@ const getAssignAppointment = async (req: Request, res: Response) => {
     // Step 5: Sort by createdAt field
     pipeline.push({
       $sort: {
-        'appointmentDetails.createdAt': -1, // Sort in descending order
+        "appointmentDetails.createdAt": -1, // Sort in descending order
       },
     });
 
@@ -234,26 +238,26 @@ const getAssignAppointment = async (req: Request, res: Response) => {
     pipeline.push(
       {
         $lookup: {
-          from: 'users',
-          localField: 'managerId',
-          foreignField: '_id',
-          as: 'managerDetails',
+          from: "users",
+          localField: "managerId",
+          foreignField: "_id",
+          as: "managerDetails",
         },
       },
       {
         $lookup: {
-          from: 'users',
-          localField: 'employeeId',
-          foreignField: '_id',
-          as: 'employeeDetails',
+          from: "users",
+          localField: "employeeId",
+          foreignField: "_id",
+          as: "employeeDetails",
         },
       },
       // Step 7: Project the final output
       {
         $project: {
           _id: 1,
-          managerDetails: { $arrayElemAt: ['$managerDetails', 0] },
-          employeeDetails: { $arrayElemAt: ['$employeeDetails', 0] },
+          managerDetails: { $arrayElemAt: ["$managerDetails", 0] },
+          employeeDetails: { $arrayElemAt: ["$employeeDetails", 0] },
           appointmentDetails: 1,
         },
       },
@@ -284,14 +288,13 @@ const getAssignAppointment = async (req: Request, res: Response) => {
       limit: limitNumber,
     });
 
-
     return res.status(200).json(
       myResponse({
         statusCode: 200,
         status: "success",
         message: "Appointments fetched successfully",
         data: appointmentList,
-       pagination
+        pagination,
       })
     );
   } catch (error) {
@@ -317,9 +320,9 @@ const unableServiceRequest = async (req: Request, res: Response) => {
       );
     }
 
-    const {assignAppointmentId,reason} = req.body;
+    const { assignAppointmentId, reason, managerId, employeeId } = req.body;
 
-    if (!assignAppointmentId || !reason) {
+    if (!assignAppointmentId || !reason || !managerId || !employeeId) {
       return res.status(400).json(
         myResponse({
           statusCode: 400,
@@ -329,7 +332,86 @@ const unableServiceRequest = async (req: Request, res: Response) => {
       );
     }
 
-    const verifyAssignAppointment = await employeeAssignModel.findOne({ _id: assignAppointmentId, employeeId: req.userId });
+    const verifyAssignAppointment = await employeeAssignModel.findOne({
+      _id: assignAppointmentId,
+      employeeId: req.userId,
+    });
+    if (!verifyAssignAppointment) {
+      return res.status(404).json(
+        myResponse({
+          statusCode: 404,
+          status: "failed",
+          message: "Appointment not found",
+        })
+      );
+    }
+    console.log(verifyAssignAppointment);
+
+    const createUnableService = await unableServiceModel.create({
+      assignAppointmentId,
+      reason,
+      managerId: verifyAssignAppointment.managerId,
+      employeeId: req.userId,
+    });
+
+    res.status(200).json(
+      myResponse({
+        statusCode: 200,
+        status: "success",
+        message: "Unable service request created successfully",
+        data: createUnableService,
+      })
+    );
+
+    const notificationForEmployee = await notificationModel.create({
+      message: `${req.user.name} Unable service request created. Reason: ${reason}`,
+      role: "MANAGER",
+      recipientId: verifyAssignAppointment.managerId,
+    });
+
+    io.emit(
+      `notification::${verifyAssignAppointment.managerId}`,
+      notificationForEmployee
+    );
+  } catch (error) {
+    console.log("Error in unableServiceRequest controller: ", error);
+    res.status(500).json({
+      statusCode: 500,
+      status: "failed",
+      message: "Internal Server Error",
+    });
+  }
+};
+
+const employeeCheckIn = async (req: Request, res: Response) => {
+  try {
+    const userRole = req.userRole;
+    const userId = req.userId;
+    if (userRole !== "EMPLOYEE") {
+      return res.status(401).json(
+        myResponse({
+          statusCode: 401,
+          status: "failed",
+          message: "You are not authorized to perform this action",
+        })
+      );
+    }
+
+    const { appointmentId } = req.body;
+
+    if (!appointmentId) {
+      return res.status(400).json(
+        myResponse({
+          statusCode: 400,
+          status: "failed",
+          message: "All fields are required",
+        })
+      );
+    }
+    const verifyAssignAppointment = await employeeAssignModel.findOne({
+      appointmentId: appointmentId,
+      employeeId: userId,
+    });
     if (!verifyAssignAppointment) {
       return res.status(404).json(
         myResponse({
@@ -340,42 +422,50 @@ const unableServiceRequest = async (req: Request, res: Response) => {
       );
     }
 
-    const createUnableService = await unableServiceModel.create({
-      assignAppointmentId,
-      reason
+    const createCheckIn = await appointmentModel.findOneAndUpdate(
+      { _id: appointmentId },
+      {
+        appointmentStatus: "CHECKED IN",
+      }
+    );
+    if(!createCheckIn){
+      return res.status(400).json(
+        myResponse({
+          statusCode: 400,
+          status: "failed",
+          message: "Appointment CheckIn request Failed",
+        })
+      )
+    }
+
+    const notificationForEmployee = await notificationModel.create({
+      message: `${req.user.name} Checked in successfully`,
+      role: "USER",
+      recipientId: createCheckIn.user,
     });
-  
+
+    io.emit(
+      `notification::${createCheckIn.user}`,
+      notificationForEmployee
+    );
+
     res.status(200).json(
       myResponse({
         statusCode: 200,
         status: "success",
-        message: "Unable service request created successfully",
-        data: createUnableService
+        message: "Appointment CheckIn request created successfully",
+        data: createCheckIn,
       })
     );
-
-    const notificationForEmployee = await notificationModel.create({
-      message: `${req.user.name} Unable service request created. Reason: ${reason}`,
-      role: "MANAGER",
-      recipientId: verifyAssignAppointment.managerId,
-    })
-
-    io.emit(`notification::${verifyAssignAppointment.managerId}`, notificationForEmployee);
-    
-
-
+      
   } catch (error) {
-    console.log("Error in unableServiceRequest controller: ", error);
+    console.log("Error in employeeCheckIn controller: ", error);
     res.status(500).json({
       statusCode: 500,
       status: "failed",
       message: "Internal Server Error",
     });
-    
   }
-}
+};
 
-
-
-
-export { createAttendance,getAssignAppointment,unableServiceRequest };
+export { createAttendance, getAssignAppointment, unableServiceRequest, employeeCheckIn };

@@ -19,6 +19,10 @@ import {IAssignEmployee} from "../manager.interface";
         type: Schema.Types.ObjectId,
         ref: "Appointment",
         required: true
+      },
+      isDelete: {
+        type: Boolean,
+        default: false
       }
     },
     {

@@ -12,8 +12,21 @@ const unableServiceSchema: Schema<IUnableService> = new mongoose.Schema(
       ref: "AssignEmployee",
       required: true,
     },
+    managerId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    employeeId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+   isDeny:{
+    type:Boolean,
+    default:false
+   }
   },
-
   {
     timestamps: true,
   }

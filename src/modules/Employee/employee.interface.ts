@@ -13,6 +13,9 @@ interface IAttendance {
 interface IUnableService {
     reason: string;
     assignAppointmentId: Types.ObjectId;
+    managerId: Types.ObjectId;
+    isDeny:boolean;
+    employeeId: Types.ObjectId;
 }
 
 

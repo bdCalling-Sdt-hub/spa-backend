@@ -5,6 +5,7 @@ interface IAssignEmployee {
         managerId: Types.ObjectId;
         employeeId: Types.ObjectId;
         appointmentId: Types.ObjectId;
+        isDelete: boolean
 }
 
 interface INotification {
@@ -12,6 +13,7 @@ interface INotification {
     role: string;
     recipientId: Types.ObjectId;
     read: boolean;
+
 }
     
 export { IAssignEmployee,INotification};

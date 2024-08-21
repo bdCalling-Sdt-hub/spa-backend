@@ -1,6 +1,7 @@
 import { Router } from "express";
 import isValidate from "../../middlewares/auth";
-import { assignEmployee, createManager, getAppointmentRequest, getCustomers, getEmployees, getService, getSingleCustomer, getSingleEmployee } from "./manager.controller";
+import { assignEmployee, createManager, getAppointmentRequest, getCustomers, getEmployees, getService, getSingleCustomer, getSingleEmployee, getUnableServiceRequest, unableServiceStatus } from "./manager.controller";
+
 
 
 
@@ -17,6 +18,8 @@ router.get('/get-employee/:id',isValidate,getSingleEmployee);
 router.get('/get-service',isValidate,getService);
 router.get('/get-appointment-request/:id',isValidate,getAppointmentRequest);
 router.post('/assign-employee',isValidate,assignEmployee);
+router.get('/unable-service-request-list',isValidate,getUnableServiceRequest);
+router.post('/unable-service-status',isValidate,unableServiceStatus);
 
 
 
