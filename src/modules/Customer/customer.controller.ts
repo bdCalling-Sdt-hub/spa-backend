@@ -31,6 +31,9 @@ const createAppointment = async (req: Request, res: Response) => {
       appointmentNote: string;
     } = req.body;
 
+    console.log(serviceId, customerEmail, customerAddress, customerPhone, appointmentDate, appointmentNote);
+    
+
     if (
       !serviceId ||
       !customerEmail ||

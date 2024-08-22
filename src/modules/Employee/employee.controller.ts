@@ -454,7 +454,7 @@ const employeeCheckIn = async (req: Request, res: Response) => {
         statusCode: 200,
         status: "success",
         message: "Appointment CheckIn request created successfully",
-        data: createCheckIn,
+        // data: createCheckIn,
       })
     );
       

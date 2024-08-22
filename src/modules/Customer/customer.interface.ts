@@ -7,9 +7,9 @@ interface IAppointment {
     customerEmail: string;
     customerAddress: string;
     customerPhone: string;
-    AppointmentDate: Date;
+    appointmentDate: Date;
     appointmentNote: string;
-    appointmentStatus: "PENDING" | "ASSIGN" | "ON THE WAY" | "CHECKED IN" | "WORKING" | "COMPLETED" | "CANCELLED";
+    appointmentStatus: "PENDING" | "ASSIGN" | "CHECKED IN" | "WORKING" | "COMPLETED" | "CANCELLED";
   }
   
   export default IAppointment;

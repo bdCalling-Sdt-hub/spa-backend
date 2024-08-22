@@ -19,7 +19,6 @@ const appointmentSchema: Schema = new mongoose.Schema(
       minlength: 3,
       maxlength: 30,
       trim: true,
-      unique: true,
       lowercase: true,
       validate: {
         validator: function (v: string) {

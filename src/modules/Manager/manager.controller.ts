@@ -679,7 +679,7 @@ const unableServiceStatus = async (req: Request, res: Response) => {
       }
 
       console.log(getUnableService.assignAppointmentId);
-      
+
       const softDeleteAssignAppointment =
         await assignEmployeeModel.findByIdAndUpdate(
           getUnableService.assignAppointmentId._id,
@@ -687,8 +687,7 @@ const unableServiceStatus = async (req: Request, res: Response) => {
             isDelete: true,
           }
         );
-        console.log(softDeleteAssignAppointment);
-        
+      console.log(softDeleteAssignAppointment);
 
       if (!softDeleteAssignAppointment) {
         return res.status(404).json(
@@ -731,6 +730,353 @@ const unableServiceStatus = async (req: Request, res: Response) => {
   }
 };
 
+// const managerCalendar = async (req: Request, res: Response) => {
+//   try {
+//     const user = req.userRole;
+//     if (user !== "MANAGER") {
+//       return res.status(403).json(
+//         myResponse({
+//           statusCode: 403,
+//           status: "failed",
+//           message: "You are not authorized to perform this action",
+//         })
+//       );
+//     }
+
+//     // Get pagination parameters from query, with default values
+//     const currentPage = parseInt(req.query.page as string) || 1;
+//     const limit = parseInt(req.query.limit as string) || 10;
+    
+//     // Get and parse date parameters
+
+//     const startDateUTC = new Date(req.query.startDate as string);
+// const endDateUTC = new Date(req.query.endDate as string);
+
+// console.log(startDateUTC, endDateUTC);
+
+
+
+    
+//     // Convert date strings to Date objects
+//     const startDate = startDateUTC ? new Date(startDateUTC.getTime() - (startDateUTC.getTimezoneOffset() * 60000)) : undefined;
+//     const endDate = endDateUTC ? new Date(endDateUTC.getTime() - (endDateUTC.getTimezoneOffset() * 60000)) : undefined;
+//     console.log(startDate, endDate);
+    
+    
+//     // Ensure the dates are correctly interpreted as UTC
+//     if (startDate) {
+//       startDate.setUTCHours(0, 0, 0, 0);  // Set time to start of the day
+//     }
+//     if (endDate) {
+//       endDate.setUTCHours(23, 59, 59, 999);  // Set time to end of the day
+//     }
+
+//     // Calculate the number of documents to skip
+//     const skip = (currentPage - 1) * limit;
+
+//     // Build the query object
+//     const query: any = { managerId: req.userId };
+
+//     // Add date range filter if dates are provided
+//     if (req.query.startDate && req.query.endDate) {
+//       query["appointmentId.appointmentDate"] = {
+//         $gte: startDate,
+//         $lte: endDate,
+//       };
+//       console.log("============");
+      
+//     } else if (req.query.startDate) {
+//       query["appointmentId.appointmentDate"] = { $gte: startDate };
+//     } else if (req.query.endDate) {
+//       query["appointmentId.appointmentDate"] = { $lte: endDate };
+//     }
+// console.log(query);
+
+//     const totalData = await assignEmployeeModel.countDocuments(query);
+//     const getAppointmentRequest = await assignEmployeeModel
+//       .find(query)
+//       .populate("managerId employeeId appointmentId")
+//       .skip(skip)
+//       .limit(limit);
+
+//     if (!getAppointmentRequest || getAppointmentRequest.length === 0) {
+//       return res.status(404).json(
+//         myResponse({
+//           statusCode: 404,
+//           status: "failed",
+//           message: "Appointment request not found",
+//         })
+//       );
+//     }
+
+//     // Use paginationBuilder to get pagination details
+//     const pagination = paginationBuilder({
+//       totalData,
+//       currentPage,
+//       limit,
+//     });
+
+//     return res.status(200).json(
+//       myResponse({
+//         statusCode: 200,
+//         status: "success",
+//         message: "Appointment request fetched successfully",
+//         data: getAppointmentRequest,
+//         pagination,
+//       })
+//     );
+//   } catch (error) {
+//     console.log("Error in getAppointmentRequest controller: ", error);
+//     res.status(500).json(
+//       myResponse({
+//         statusCode: 500,
+//         status: "failed",
+//         message: "Internal Server Error",
+//       })
+//     );
+//   }
+// };
+
+
+
+const managerCalendar = async (req: Request, res: Response) => {
+  try {
+    const user = req.userRole;
+    if (user !== "MANAGER") {
+      return res.status(403).json(
+        myResponse({
+          statusCode: 403,
+          status: "failed",
+          message: "You are not authorized to perform this action",
+        })
+      );
+    }
+
+    // Get pagination parameters from query, with default values
+    const currentPage = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (currentPage - 1) * limit;
+
+    // Get and parse date parameters
+    const startDateStr = req.query.startDate as string;
+    const endDateStr = req.query.endDate as string;
+
+    // Convert to date objects and set time to UTC
+    let startDate, endDate;
+    if (startDateStr) {
+      startDate = new Date(startDateStr);
+      startDate.setUTCHours(0, 0, 0, 0);
+    }
+    if (endDateStr) {
+      endDate = new Date(endDateStr);
+      endDate.setUTCHours(23, 59, 59, 999);
+    }
+    console.log(startDate, endDate);
+    
+
+    // Aggregation pipeline
+    const pipeline = [
+      {
+        $match: { managerId: req.userId },
+      },
+      {
+        $lookup: {
+          from: 'users', // Assuming 'users' collection for managerId and employeeId
+          localField: 'managerId',
+          foreignField: '_id',
+          as: 'managerInfo',
+        },
+      },
+      {
+        $lookup: {
+          from: 'users', // Assuming 'users' collection for employeeId
+          localField: 'employeeId',
+          foreignField: '_id',
+          as: 'employeeInfo',
+        },
+      },
+      {
+        $lookup: {
+          from: 'appointments', // Assuming 'appointments' collection for appointmentId
+          localField: 'appointmentId',
+          foreignField: '_id',
+          as: 'appointmentInfo',
+        },
+      },
+      {
+        $unwind: '$managerInfo',
+      },
+      {
+        $unwind: '$employeeInfo',
+      },
+      {
+        $unwind: '$appointmentInfo',
+      },
+      {
+        $project: {
+          managerId: '$managerInfo',
+          employeeId: '$employeeInfo',
+          appointmentId: '$appointmentInfo',
+          isDelete: 1,
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      },
+      // Add filtering after the population
+      {
+        $match: {
+          ...(startDate && endDate && {
+            "appointmentId.appointmentDate": {
+              $gte: startDate,
+              $lte: endDate,
+            },
+          }),
+          ...(startDate && !endDate && {
+            "appointmentId.appointmentDate": { $gt: startDate },
+          }),
+          ...(!startDate && endDate && {
+            "appointmentId.appointmentDate": { $lt: endDate },
+          }),
+        },
+      },
+      {
+        $skip: skip,
+      },
+      {
+        $limit: limit,
+      },
+    ];
+
+    const getAppointmentRequest = await assignEmployeeModel.aggregate(pipeline);
+
+    if (!getAppointmentRequest || getAppointmentRequest.length === 0) {
+      return res.status(404).json(
+        myResponse({
+          statusCode: 404,
+          status: "failed",
+          message: "Appointment request not found",
+        })
+      );
+    }
+
+    const totalData = await assignEmployeeModel.aggregate([
+      { $match: { managerId: req.userId } },
+      {
+        $lookup: {
+          from: 'appointments',
+          localField: 'appointmentId',
+          foreignField: '_id',
+          as: 'appointmentInfo',
+        },
+      },
+      {
+        $unwind: '$appointmentInfo',
+      },
+      {
+        $match: {
+          ...(startDate && endDate && {
+            "appointmentInfo.appointmentDate": {
+              $gte: startDate,
+              $lte: endDate,
+            },
+          }),
+          ...(startDate && !endDate && {
+            "appointmentInfo.appointmentDate": { $gte: startDate },
+          }),
+          ...(!startDate && endDate && {
+            "appointmentInfo.appointmentDate": { $lte: endDate },
+          }),
+        },
+      },
+      {
+        $count: 'totalData',
+      },
+    ]);
+
+    const pagination = paginationBuilder({
+      totalData: totalData.length > 0 ? totalData[0].totalData : 0,
+      currentPage,
+      limit,
+    });
+
+    return res.status(200).json(
+      myResponse({
+        statusCode: 200,
+        status: "success",
+        message: "Appointment request fetched successfully",
+        data: getAppointmentRequest,
+        pagination,
+      })
+    );
+  } catch (error) {
+    console.log("Error in managerCalendar controller: ", error);
+    res.status(500).json(
+      myResponse({
+        statusCode: 500,
+        status: "failed",
+        message: "Internal Server Error",
+      })
+    );
+  }
+};
+
+
+const assignAppointmentList = async(req: Request, res: Response) => {
+  try {
+    const userRole = req.userRole;
+    if(userRole !== "MANAGER") {
+      return res.status(401).json(
+        myResponse({
+          statusCode: 401,
+          status: "failed",
+          message: "You are not authorized to perform this action",
+        })
+      )
+    }
+    const {employeeId} = req.query;
+
+    const getAssignAppointment = await assignEmployeeModel.find({employeeId:employeeId});
+
+    
+
+
+
+    if(!getAssignAppointment || getAssignAppointment.length === 0) {
+      return res.status(404).json(
+        myResponse({
+          statusCode: 404,
+          status: "failed",
+          message: "Appointment not found",
+        })
+      );
+    }
+
+    return res.status(200).json(
+      myResponse({
+        statusCode: 200,
+        status: "success",
+        message: "Appointment fetched successfully",
+        data: getAssignAppointment
+      })
+    );
+    
+  
+  } catch (error) {
+    console.log("Error in getAssignAppointment controller: ", error);
+    res.status(500).json(
+      myResponse({
+        statusCode: 500,
+        status: "failed",
+        message: "Internal Server Error",
+      })
+    );
+  }
+}
+
+
+
+
+
 export {
   createManager,
   getCustomers,
@@ -741,5 +1087,7 @@ export {
   getAppointmentRequest,
   assignEmployee,
   getUnableServiceRequest,
-  unableServiceStatus
+  unableServiceStatus,
+  managerCalendar,
+  assignAppointmentList
 };
