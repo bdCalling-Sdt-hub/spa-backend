@@ -1035,7 +1035,12 @@ const assignAppointmentList = async(req: Request, res: Response) => {
     }
     const {employeeId} = req.query;
 
-    const getAssignAppointment = await assignEmployeeModel.find({employeeId:employeeId});
+    const getAssignAppointment = await assignEmployeeModel.find({employeeId:employeeId}).populate({
+      path: "appointmentId",
+      populate: {
+        path: "user",
+      }
+    });
 
     
 
