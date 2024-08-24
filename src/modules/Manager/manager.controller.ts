@@ -8,6 +8,7 @@ import assignEmployeeModel from "../Manager/Model/employeeAssign.model";
 import notificationModel from "./Model/notification.model";
 import { io } from "../../server";
 import unableServiceModel from "../Employee/model/unableService.model";
+import mongoose from "mongoose";
 
 const createManager = async (req: Request, res: Response) => {
   try {
@@ -746,7 +747,7 @@ const unableServiceStatus = async (req: Request, res: Response) => {
 //     // Get pagination parameters from query, with default values
 //     const currentPage = parseInt(req.query.page as string) || 1;
 //     const limit = parseInt(req.query.limit as string) || 10;
-    
+
 //     // Get and parse date parameters
 
 //     const startDateUTC = new Date(req.query.startDate as string);
@@ -754,15 +755,11 @@ const unableServiceStatus = async (req: Request, res: Response) => {
 
 // console.log(startDateUTC, endDateUTC);
 
-
-
-    
 //     // Convert date strings to Date objects
 //     const startDate = startDateUTC ? new Date(startDateUTC.getTime() - (startDateUTC.getTimezoneOffset() * 60000)) : undefined;
 //     const endDate = endDateUTC ? new Date(endDateUTC.getTime() - (endDateUTC.getTimezoneOffset() * 60000)) : undefined;
 //     console.log(startDate, endDate);
-    
-    
+
 //     // Ensure the dates are correctly interpreted as UTC
 //     if (startDate) {
 //       startDate.setUTCHours(0, 0, 0, 0);  // Set time to start of the day
@@ -784,7 +781,7 @@ const unableServiceStatus = async (req: Request, res: Response) => {
 //         $lte: endDate,
 //       };
 //       console.log("============");
-      
+
 //     } else if (req.query.startDate) {
 //       query["appointmentId.appointmentDate"] = { $gte: startDate };
 //     } else if (req.query.endDate) {
@@ -837,8 +834,6 @@ const unableServiceStatus = async (req: Request, res: Response) => {
 //   }
 // };
 
-
-
 const managerCalendar = async (req: Request, res: Response) => {
   try {
     const user = req.userRole;
@@ -872,7 +867,6 @@ const managerCalendar = async (req: Request, res: Response) => {
       endDate.setUTCHours(23, 59, 59, 999);
     }
     console.log(startDate, endDate);
-    
 
     // Aggregation pipeline
     const pipeline = [
@@ -881,42 +875,42 @@ const managerCalendar = async (req: Request, res: Response) => {
       },
       {
         $lookup: {
-          from: 'users', // Assuming 'users' collection for managerId and employeeId
-          localField: 'managerId',
-          foreignField: '_id',
-          as: 'managerInfo',
+          from: "users", // Assuming 'users' collection for managerId and employeeId
+          localField: "managerId",
+          foreignField: "_id",
+          as: "managerInfo",
         },
       },
       {
         $lookup: {
-          from: 'users', // Assuming 'users' collection for employeeId
-          localField: 'employeeId',
-          foreignField: '_id',
-          as: 'employeeInfo',
+          from: "users", // Assuming 'users' collection for employeeId
+          localField: "employeeId",
+          foreignField: "_id",
+          as: "employeeInfo",
         },
       },
       {
         $lookup: {
-          from: 'appointments', // Assuming 'appointments' collection for appointmentId
-          localField: 'appointmentId',
-          foreignField: '_id',
-          as: 'appointmentInfo',
+          from: "appointments", // Assuming 'appointments' collection for appointmentId
+          localField: "appointmentId",
+          foreignField: "_id",
+          as: "appointmentInfo",
         },
       },
       {
-        $unwind: '$managerInfo',
+        $unwind: "$managerInfo",
       },
       {
-        $unwind: '$employeeInfo',
+        $unwind: "$employeeInfo",
       },
       {
-        $unwind: '$appointmentInfo',
+        $unwind: "$appointmentInfo",
       },
       {
         $project: {
-          managerId: '$managerInfo',
-          employeeId: '$employeeInfo',
-          appointmentId: '$appointmentInfo',
+          managerId: "$managerInfo",
+          employeeId: "$employeeInfo",
+          appointmentId: "$appointmentInfo",
           isDelete: 1,
           createdAt: 1,
           updatedAt: 1,
@@ -925,18 +919,21 @@ const managerCalendar = async (req: Request, res: Response) => {
       // Add filtering after the population
       {
         $match: {
-          ...(startDate && endDate && {
-            "appointmentId.appointmentDate": {
-              $gte: startDate,
-              $lte: endDate,
-            },
-          }),
-          ...(startDate && !endDate && {
-            "appointmentId.appointmentDate": { $gt: startDate },
-          }),
-          ...(!startDate && endDate && {
-            "appointmentId.appointmentDate": { $lt: endDate },
-          }),
+          ...(startDate &&
+            endDate && {
+              "appointmentId.appointmentDate": {
+                $gte: startDate,
+                $lte: endDate,
+              },
+            }),
+          ...(startDate &&
+            !endDate && {
+              "appointmentId.appointmentDate": { $gt: startDate },
+            }),
+          ...(!startDate &&
+            endDate && {
+              "appointmentId.appointmentDate": { $lt: endDate },
+            }),
         },
       },
       {
@@ -963,33 +960,36 @@ const managerCalendar = async (req: Request, res: Response) => {
       { $match: { managerId: req.userId } },
       {
         $lookup: {
-          from: 'appointments',
-          localField: 'appointmentId',
-          foreignField: '_id',
-          as: 'appointmentInfo',
+          from: "appointments",
+          localField: "appointmentId",
+          foreignField: "_id",
+          as: "appointmentInfo",
         },
       },
       {
-        $unwind: '$appointmentInfo',
+        $unwind: "$appointmentInfo",
       },
       {
         $match: {
-          ...(startDate && endDate && {
-            "appointmentInfo.appointmentDate": {
-              $gte: startDate,
-              $lte: endDate,
-            },
-          }),
-          ...(startDate && !endDate && {
-            "appointmentInfo.appointmentDate": { $gte: startDate },
-          }),
-          ...(!startDate && endDate && {
-            "appointmentInfo.appointmentDate": { $lte: endDate },
-          }),
+          ...(startDate &&
+            endDate && {
+              "appointmentInfo.appointmentDate": {
+                $gte: startDate,
+                $lte: endDate,
+              },
+            }),
+          ...(startDate &&
+            !endDate && {
+              "appointmentInfo.appointmentDate": { $gte: startDate },
+            }),
+          ...(!startDate &&
+            endDate && {
+              "appointmentInfo.appointmentDate": { $lte: endDate },
+            }),
         },
       },
       {
-        $count: 'totalData',
+        $count: "totalData",
       },
     ]);
 
@@ -1021,37 +1021,156 @@ const managerCalendar = async (req: Request, res: Response) => {
 };
 
 
-const assignAppointmentList = async(req: Request, res: Response) => {
+// const assignAppointmentList = async (req: Request, res: Response) => {
+//   try {
+//     const userRole = req.userRole;
+//     if (userRole !== "MANAGER") {
+//       return res.status(401).json(
+//         myResponse({
+//           statusCode: 401,
+//           status: "failed",
+//           message: "You are not authorized to perform this action",
+//         })
+//       );
+//     }
+
+//     const { employeeId, appointmentDate } = req.query;
+
+//     if (!mongoose.Types.ObjectId.isValid(employeeId as string)) {
+//       return res.status(400).json(
+//         myResponse({
+//           statusCode: 400,
+//           status: "failed",
+//           message: "Invalid employee ID",
+//         })
+//       );
+//     }
+
+//     // Convert appointmentDate to a Date object if provided
+//     const appointmentDateFilter = appointmentDate
+//       ? new Date(appointmentDate as string)
+//       : null;
+
+//     const getAssignAppointment = await assignEmployeeModel
+//       .find({ employeeId })
+//       .populate({
+//         path: "appointmentId",
+//         match: appointmentDateFilter
+//           && { appointmentDate: appointmentDateFilter },
+          
+//         populate: {
+//           path: "user",
+//           select: "-password -__v", // Exclude unnecessary fields
+//         },
+//       })
+//       .populate("employeeId")
+//       .populate("managerId");
+
+//     if (!getAssignAppointment || getAssignAppointment.length === 0) {
+//       return res.status(404).json(
+//         myResponse({
+//           statusCode: 404,
+//           status: "failed",
+//           message: "Appointment not found",
+//         })
+//       );
+//     }
+
+//     return res.status(200).json(
+//       myResponse({
+//         statusCode: 200,
+//         status: "success",
+//         message: "Appointment fetched successfully",
+//         data: getAssignAppointment,
+//       })
+//     );
+//   } catch (error) {
+//     console.error("Error in getAssignAppointment controller:", error);
+//     res.status(500).json(
+//       myResponse({
+//         statusCode: 500,
+//         status: "failed",
+//         message: "Internal Server Error",
+//       })
+//     );
+//   }
+// };
+
+
+
+const assignAppointmentList = async (req: Request, res: Response) => {
   try {
     const userRole = req.userRole;
-    if(userRole !== "MANAGER") {
+    if (userRole !== "MANAGER") {
       return res.status(401).json(
         myResponse({
           statusCode: 401,
           status: "failed",
           message: "You are not authorized to perform this action",
         })
-      )
+      );
     }
-    const {employeeId} = req.query;
 
-    const getAssignAppointment = await assignEmployeeModel.find({employeeId:employeeId}).populate({
-      path: "appointmentId",
-      populate: {
-        path: "user",
-      }
-    });
+    const { employeeId, appointmentDate } = req.query;
 
-    
+    if (!mongoose.Types.ObjectId.isValid(employeeId as string)) {
+      return res.status(400).json(
+        myResponse({
+          statusCode: 400,
+          status: "failed",
+          message: "Invalid employee ID",
+        })
+      );
+    }
 
+    // Fetch all assignments for the given employeeId
+    const getAssignAppointment = await assignEmployeeModel
+      .find({ employeeId })
+      .populate({
+        path: "appointmentId",
+        populate: {
+          path: "user",
+          select: "-password -otherSensitiveFields", // Exclude unnecessary fields
+        },
+      })
+      .populate("employeeId")
+      .populate("managerId");
 
-
-    if(!getAssignAppointment || getAssignAppointment.length === 0) {
+    if (!getAssignAppointment || getAssignAppointment.length === 0) {
       return res.status(404).json(
         myResponse({
           statusCode: 404,
           status: "failed",
-          message: "Appointment not found",
+          message: "No appointments found for the given employee",
+        })
+      );
+    }
+
+    // Convert appointmentDate to a Date object if provided
+    const appointmentDateFilter = appointmentDate
+      ? new Date(appointmentDate as string)
+      : null;
+
+
+      console.log(appointmentDateFilter);
+      
+
+    // Filter the appointments by appointmentDate if provided
+    const filteredAppointments = appointmentDateFilter
+      ? getAssignAppointment.filter((assignment: any) =>
+          assignment.appointmentId &&
+          assignment.appointmentId.appointmentDate &&
+          new Date(assignment.appointmentId.appointmentDate).toDateString() ===
+            appointmentDateFilter.toDateString()
+        )
+      : getAssignAppointment;
+
+    if (filteredAppointments.length === 0) {
+      return res.status(404).json(
+        myResponse({
+          statusCode: 404,
+          status: "failed",
+          message: "No appointments found for the given date",
         })
       );
     }
@@ -1060,14 +1179,12 @@ const assignAppointmentList = async(req: Request, res: Response) => {
       myResponse({
         statusCode: 200,
         status: "success",
-        message: "Appointment fetched successfully",
-        data: getAssignAppointment
+        message: "Appointments fetched successfully",
+        data: filteredAppointments,
       })
     );
-    
-  
   } catch (error) {
-    console.log("Error in getAssignAppointment controller: ", error);
+    console.error("Error in getAssignAppointment controller:", error);
     res.status(500).json(
       myResponse({
         statusCode: 500,
@@ -1076,7 +1193,8 @@ const assignAppointmentList = async(req: Request, res: Response) => {
       })
     );
   }
-}
+};
+
 
 
 
@@ -1094,5 +1212,5 @@ export {
   getUnableServiceRequest,
   unableServiceStatus,
   managerCalendar,
-  assignAppointmentList
+  assignAppointmentList,
 };

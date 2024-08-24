@@ -22,8 +22,9 @@ type ResponseType = {
     data: {
       type?: string;
       attributes?: any;
-      token?: string;
+    
     };
+    token?: string;
     pagination?: {
       totalPage: number;
       currentPage: number;
@@ -50,7 +51,7 @@ type ResponseType = {
     }
   
     if (response.token) {
-      responseObject.data.token = response.token;
+      responseObject.token = response.token;
     }
   
     if (response.pagination) {

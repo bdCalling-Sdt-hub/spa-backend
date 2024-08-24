@@ -347,8 +347,11 @@ const signIn = async (req: Request, res: Response) => {
         })
       );
     }
+console.log(user.password);
 
     const isPasswordMatch = await comparePassword(password, user.password);
+    console.log("isPasswordMatch: ", isPasswordMatch);
+    
 
     if (!isPasswordMatch) {
       return res.status(401).json(
@@ -366,6 +369,9 @@ const signIn = async (req: Request, res: Response) => {
       name: user.name,
       role: user.role,
     });
+
+    console.log("accessToken: ", accessToken);
+    
 
     if (!accessToken) {
       return res.status(500).json(
