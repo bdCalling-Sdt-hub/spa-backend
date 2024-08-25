@@ -6,6 +6,7 @@ import { EmployeeRoutes } from "../modules/Employee/employee.route";
 import { ManagerRoutes } from "../modules/Manager/manager.router";
 import { UpdateUserRoutes } from "../modules/UpdateUser/userUpdate.route";
 import { SettingsRoutes } from "../modules/Settings/settings.route";
+import { ChatRoutes } from "../modules/Chat/chat.route";
 
 const router = Router();
 
@@ -37,6 +38,10 @@ const moduleRoutes = [
   {
     path: "/settings",
     route: SettingsRoutes
+  },
+  {
+    path: "/chat",
+    route:ChatRoutes
   }
 ];
 
