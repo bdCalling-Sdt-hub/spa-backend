@@ -18,15 +18,15 @@ const socketIo = (io: any) => {
         }
 
         const existingChat = await chatModel.findOne({_id:chatId});
-        if(!existingChat){
-          callback(myResponse(
-            {
+        if (!existingChat) {
+          if (typeof callback === "function") {
+            callback(myResponse({
               statusCode: 404,
               status: "failed",
               message: "Chat not found"
-            }
-          ))
-          return
+            }));
+          }
+          return;
         }
 
         const createMessage = await messageModel.create(messageBody);
@@ -45,27 +45,25 @@ const socketIo = (io: any) => {
         const chatEvent = `chat::${receiverId}`;
         io.emit(chatEvent,chat);
 
-        if(createMessage){
-          callback(myResponse(
-            {
-              statusCode: 200,
-              status: "success",
-              message: "Message sent successfully",
-              data: getLastMessage
-            }
-          ))
+        if (createMessage && typeof callback === "function") {
+          callback(myResponse({
+            statusCode: 200,
+            status: "success",
+            message: "Message sent successfully",
+            data: getLastMessage
+          }));
         }
 
 
       } catch (error) {
         console.log("Error in send-message controller socket: ", error);
-        callback(myResponse(
-          {
+        if (typeof callback === "function") {
+          callback(myResponse({
             statusCode: 500,
             status: "failed",
             message: "Internal Server Error"
-          }
-        ))
+          }));
+        }
       }
     })
 

@@ -10,7 +10,7 @@ const notificationSchema: Schema<INotification> = new mongoose.Schema(
     role: {
       type: String,
       enum: ["ADMIN", "MANAGER", "EMPLOYEE", "USER"],
-      required: true,
+      required: false,
     },
     recipientId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     read: { type: Boolean, default: false },

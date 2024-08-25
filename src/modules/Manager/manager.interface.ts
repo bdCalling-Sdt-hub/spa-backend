@@ -10,10 +10,9 @@ interface IAssignEmployee {
 
 interface INotification {
     message: string;
-    role: string;
+    role?: string;
     recipientId: Types.ObjectId;
     read: boolean;
-
 }
     
 export { IAssignEmployee,INotification};

@@ -22,7 +22,7 @@ const createChatList = async (req: Request, res: Response) => {
       );
     }
 
-    const { receiverId }: any = req.body;
+    const { receiverId }: {receiverId: mongoose.Types.ObjectId} = req.body;
 
     if (!receiverId) {
       return res.status(400).json(
@@ -142,6 +142,7 @@ const getAllChatForUser = async (req: Request, res: Response) => {
           })
         )
       }
+      
 
       res.status(200).json(
         myResponse({
