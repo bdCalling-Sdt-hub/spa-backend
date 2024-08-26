@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import serviceModel from "./service.model";
 import myResponse from "../../utils/Response";
 import IService from "./services.interface";
+import employeeSubmitFormServiceModel from "./employeeSubmitFormService.model";
 
 const createService = async (req: Request, res: Response) => {
   try {
@@ -192,7 +193,7 @@ const singleService = async (req: Request, res: Response) => {
       );
     }
     const user = req.user;
-    if(!user){
+    if (!user) {
       return res.status(401).json(
         myResponse({
           statusCode: 401,
@@ -202,7 +203,7 @@ const singleService = async (req: Request, res: Response) => {
       );
     }
     console.log(id);
-    
+
     const service = await serviceModel.findById(id);
     if (!service) {
       return res.status(404).json(
@@ -234,4 +235,71 @@ const singleService = async (req: Request, res: Response) => {
   }
 };
 
-export { createService, getService, updateService,singleService };
+const employeeSubmitFormService = async (req: Request, res: Response) => {
+  try {
+    const userRole = req.userRole;
+    if (userRole !== "ADMIN") {
+      return res.status(401).json(
+        myResponse({
+          statusCode: 401,
+          status: "failed",
+          message: "You are not authorized to perform this action",
+        })
+      );
+    }
+    const { serviceId } = req.query;
+    if (!serviceId) {
+      return res.status(404).json(
+        myResponse({
+          statusCode: 404,
+          status: "failed",
+          message: "Service Id not found",
+        })
+      );
+    }
+
+    const { chemicalList, serviceProviderList } = req.body;
+    if (!chemicalList || !serviceProviderList) {
+      return res.status(404).json(
+        myResponse({
+          statusCode: 404,
+          status: "failed",
+          message: "Please provide all the required fields",
+        })
+      );
+    }
+
+    const createAndUpdateEmployeeSubmitFormService =
+      await employeeSubmitFormServiceModel.create({
+        serviceId: serviceId,
+        chemicalList: chemicalList,
+        providerList: serviceProviderList,
+      });
+
+    res.status(200).json(
+      myResponse({
+        statusCode: 200,
+        status: "success",
+        message: "Service created successfully",
+        data: createAndUpdateEmployeeSubmitFormService,
+      })
+    );
+  } catch (error) {
+    console.log("Error in employeeSubmitFormService controller: ", error);
+    res.status(500).json(
+      myResponse({
+        statusCode: 500,
+        status: "failed",
+        message: "Internal Server Error",
+      })
+    );
+  }
+};
+
+export {
+  createService,
+  getService,
+  updateService,
+  singleService,
+  employeeSubmitFormService,
+};
