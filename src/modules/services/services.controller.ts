@@ -3,6 +3,7 @@ import serviceModel from "./service.model";
 import myResponse from "../../utils/Response";
 import IService from "./services.interface";
 import employeeSubmitFormServiceModel from "./employeeSubmitFormService.model";
+import questionModel from "./model/question.model";
 
 const createService = async (req: Request, res: Response) => {
   try {
@@ -276,6 +277,27 @@ const employeeSubmitFormService = async (req: Request, res: Response) => {
         providerList: serviceProviderList,
       });
 
+
+       // Create question collection for chemicalList
+    for (const chemical of chemicalList.chemical) {
+      await questionModel.create({
+        serviceId: serviceId,
+        question: chemical,
+        questionValue: chemical.toLowerCase().replace(/ /g, "_").replace(/[()]/g, ""),
+        inputType: chemicalList.inputType
+      });
+    }
+
+    // Create question collection for providerList
+    for (const provider of serviceProviderList.provider) {
+      await questionModel.create({
+        serviceId: serviceId,
+        question: provider,
+        questionValue: provider.toLowerCase().replace(/ /g, "_").replace(/[()]/g, ""),
+        inputType: serviceProviderList.inputType
+      });
+    }
+
     res.status(200).json(
       myResponse({
         statusCode: 200,
@@ -296,10 +318,188 @@ const employeeSubmitFormService = async (req: Request, res: Response) => {
   }
 };
 
+const updateEmployeeSubmitFormService = async (req: Request, res: Response) => {
+  try {
+    const userRole = req.userRole;
+    
+    // Check if user is ADMIN
+    if (userRole !== "ADMIN") {
+      return res.status(401).json(
+        myResponse({
+          statusCode: 401,
+          status: "failed",
+          message: "You are not authorized to perform this action",
+        })
+      );
+    }
+
+    // Check if serviceId is provided
+    const { serviceId } = req.query;
+    if (!serviceId) {
+      return res.status(404).json(
+        myResponse({
+          statusCode: 404,
+          status: "failed",
+          message: "Service Id not found",
+        })
+      );
+    }
+
+    // Validate request body
+    const { chemicalList, serviceProviderList } = req.body;
+    if (!chemicalList || !serviceProviderList) {
+      return res.status(404).json(
+        myResponse({
+          statusCode: 404,
+          status: "failed",
+          message: "Please provide all the required fields",
+        })
+      );
+    }
+
+    // Fetch the existing service
+    const existingService = await employeeSubmitFormServiceModel.findOne({ serviceId });
+    if (!existingService) {
+      return res.status(404).json(
+        myResponse({
+          statusCode: 404,
+          status: "failed",
+          message: "Service not found",
+        })
+      );
+    }
+
+    // Update the service
+    existingService.chemicalList = chemicalList;
+    existingService.providerList = serviceProviderList;
+    await existingService.save();
+
+    // Update questions
+    const allQuestions = chemicalList.chemical.map((chemical: string) => ({
+      question: chemical,
+      questionValue: chemical.toLowerCase().replace(/ /g, "_").replace(/[()]/g, ""),
+      inputType: chemicalList.inputType,
+    })).concat(
+      serviceProviderList.provider.map((provider:string) => ({
+        question: provider,
+        questionValue: provider.toLowerCase().replace(/ /g, "_").replace(/[()]/g, ""),
+        inputType: serviceProviderList.inputType,
+      }))
+    );
+
+    for (const questionData of allQuestions) {
+      const existingQuestion = await questionModel.findOne({
+        serviceId,
+        questionValue: questionData.questionValue,
+      });
+
+      if (existingQuestion) {
+        // Update existing question
+        existingQuestion.question = questionData.question;
+        existingQuestion.inputType = questionData.inputType;
+        await existingQuestion.save();
+      } else {
+        // Create new question if it doesn't exist
+        await questionModel.create({
+          serviceId,
+          ...questionData,
+        });
+      }
+    }
+
+    // Handle deletion of questions that are no longer present
+    const existingQuestionValues = allQuestions.map((q: { questionValue: any; }) => q.questionValue);
+    await questionModel.deleteMany({
+      serviceId,
+      questionValue: { $nin: existingQuestionValues },
+    });
+
+    // Send success response
+    res.status(200).json(
+      myResponse({
+        statusCode: 200,
+        status: "success",
+        message: "Service and questions updated successfully",
+        data: existingService,
+      })
+    );
+  } catch (error) {
+    console.error("Error in updateEmployeeSubmitFormService controller: ", error);
+    res.status(500).json(
+      myResponse({
+        statusCode: 500,
+        status: "failed",
+        message: "Internal Server Error",
+      })
+    );
+  }
+};
+
+const getEmployeeSubmitFormService = async (req: Request, res: Response) => {
+  try {
+    const userRole = req.userRole;
+    
+    // Check if user is ADMIN
+    if (userRole !== "ADMIN") {
+      return res.status(401).json(
+        myResponse({
+          statusCode: 401,
+          status: "failed",
+          message: "You are not authorized to perform this action",
+        })
+      );
+    }
+
+    const { serviceId } = req.query;
+    if (!serviceId) {
+      return res.status(404).json(
+        myResponse({
+          statusCode: 404,
+          status: "failed",
+          message: "Service Id not found",
+        })
+      );
+    }
+
+    const service = await employeeSubmitFormServiceModel.findOne({ serviceId });
+
+    if (!service) {
+      return res.status(404).json(
+        myResponse({
+          statusCode: 404,
+          status: "failed",
+          message: "Service not found",
+        })
+      );
+    }
+
+    res.status(200).json(
+      myResponse({
+        statusCode: 200,
+        status: "success",
+        message: "Service fetched successfully",
+        data: service,
+      })
+    );
+  } catch (error) {
+    console.error("Error in getEmployeeSubmitFormService controller: ", error);
+    res.status(500).json(
+      myResponse({
+        statusCode: 500,
+        status: "failed",
+        message: "Internal Server Error",
+      })
+    );
+  }
+};
+
+
 export {
   createService,
   getService,
   updateService,
   singleService,
   employeeSubmitFormService,
+  updateEmployeeSubmitFormService,
+  getEmployeeSubmitFormService
 };

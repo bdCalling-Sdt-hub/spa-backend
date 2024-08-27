@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createService, employeeSubmitFormService, getService, singleService, updateService } from "./services.controller";
+import { createService, employeeSubmitFormService, getEmployeeSubmitFormService, getService, singleService, updateEmployeeSubmitFormService, updateService } from "./services.controller";
 import isValidate from "../../middlewares/auth";
 import upload from "../../middlewares/fileUploadNormal";
 
@@ -11,7 +11,10 @@ router.post('/add-service',isValidate,upload.single('image'),createService);
 router.get('/get-service',isValidate,getService);
 router.patch('/update-service',isValidate,upload.single('image'),updateService);
 router.get('/single-service',isValidate,singleService);
-router.get('/employee-submit-form-service',isValidate,employeeSubmitFormService);
+router.post('/employee-submit-form-service',isValidate,employeeSubmitFormService);
+router.put('/update-employee-submit-form-service',isValidate,updateEmployeeSubmitFormService);
+router.get('/get-employee-submit-form-service',isValidate,getEmployeeSubmitFormService);
+
 
 
 

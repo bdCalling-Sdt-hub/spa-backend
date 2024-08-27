@@ -8,6 +8,7 @@ import unableServiceModel from "./model/unableService.model";
 import notificationModel from "../Manager/Model/notification.model";
 import appointmentModel from "../Customer/customer.model";
 import { io } from "../../server";
+import questionModel from "../services/model/question.model";
 const calculateTotalWorkingHours = (
   attendance: Partial<IAttendance>
 ): number => {
@@ -468,4 +469,127 @@ const employeeCheckIn = async (req: Request, res: Response) => {
   }
 };
 
-export { createAttendance, getAssignAppointment, unableServiceRequest, employeeCheckIn };
+
+// work submission
+
+const getInputField = async (req: Request, res: Response) => {
+  try {
+    const userRole = req.userRole;
+    if (userRole !== "EMPLOYEE") {
+      return res.status(401).json(
+        myResponse({
+          statusCode: 401,  
+          status: "failed",
+          message: "You are not authorized to perform this action",
+        })  
+      )
+    }
+    const {serviceId} = req.query;
+
+    if(!serviceId){
+      return res.status(400).json(
+        myResponse({
+          statusCode: 400,
+          status: "failed",
+          message: "serviceId are required",
+        })
+      )
+    }
+
+    
+    const inputField = await questionModel.find({
+      serviceId: serviceId,
+      inputType: "INPUT"
+    });
+
+    if(!inputField || inputField.length === 0){
+      return res.status(400).json(
+        myResponse({
+          statusCode: 400,
+          status: "failed",
+          message: "Input Field not found",
+        })
+      )
+    }
+    res.status(200).json(
+      myResponse({
+        statusCode: 200,
+        status: "success",
+        message: "Input Field found successfully",
+        data: inputField
+      })
+    )
+  } catch (error) {
+    console.log("Error in getInputField controller: ", error);
+    res.status(500).json({
+      statusCode: 500,
+      status: "failed",
+      message: "Internal Server Error",
+    });
+    
+  }
+}
+
+const getCheckBoxField = async (req: Request, res: Response) => {
+  try {
+    const userRole = req.userRole;
+    if (userRole !== "EMPLOYEE") {
+      return res.status(401).json(
+        myResponse({
+          statusCode: 401,  
+          status: "failed",
+          message: "You are not authorized to perform this action",
+        })  
+      )
+    }
+    const {serviceId} = req.query;
+
+    if(!serviceId){
+      return res.status(400).json(
+        myResponse({
+          statusCode: 400,
+          status: "failed",
+          message: "serviceId are required",
+        })
+      )
+    }
+
+    const checkBoxField = await questionModel.find({
+      serviceId: serviceId,
+      inputType: "CHECKBOX"
+    });
+
+    if(!checkBoxField || checkBoxField.length === 0){
+      return res.status(400).json(
+        myResponse({
+          statusCode: 400,
+          status: "failed",
+          message: "CheckBox Field not found",
+        })
+      )
+    }
+    res.status(200).json(
+      myResponse({
+        statusCode: 200,
+        status: "success",
+        message: "CheckBox Field found successfully",
+        data: checkBoxField
+      })
+    )
+  } catch (error) {
+    console.log("Error in getCheckBoxField controller: ", error);
+    res.status(500).json(
+      myResponse({
+        statusCode: 500,
+        status: "failed",
+        message: "Internal Server Error",
+      })
+    )
+  }
+}
+
+
+
+
+
+export { createAttendance, getAssignAppointment, unableServiceRequest, employeeCheckIn, getInputField,getCheckBoxField };
