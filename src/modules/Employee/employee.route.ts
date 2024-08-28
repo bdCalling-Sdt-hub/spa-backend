@@ -1,7 +1,8 @@
 import { Router } from "express";
 
 import isValidate from "../../middlewares/auth";
-import { createAttendance, employeeCheckIn, getAssignAppointment, getCheckBoxField, getInputField, unableServiceRequest } from "./employee.controller";
+import { createAttendance, employeeCheckIn, getAssignAppointment, getCheckBoxField, getInputField, getWorkSubmission, unableServiceRequest, workSubmission, workUploadPhoto } from "./employee.controller";
+import upload from "../../middlewares/fileUploadNormal";
 
 
 
@@ -14,7 +15,10 @@ router.post('/create-unable-appointment',isValidate,unableServiceRequest);
 router.post('/employee-checkIn-appointment',isValidate,employeeCheckIn);
 router.get('/get-Input-field',isValidate,getInputField);
 router.get('/get-CheckBox-field',isValidate,getCheckBoxField);
-router.post('/work-submission',isValidate,getCheckBoxField)
+router.post('/work-submission',isValidate,workSubmission);
+router.patch('/work-upload-photo',isValidate,upload.array('images'),workUploadPhoto);
+router.get('/get-work-submission',isValidate,getWorkSubmission);
+
 
 
 

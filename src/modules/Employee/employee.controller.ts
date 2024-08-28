@@ -9,6 +9,8 @@ import notificationModel from "../Manager/Model/notification.model";
 import appointmentModel from "../Customer/customer.model";
 import { io } from "../../server";
 import questionModel from "../services/model/question.model";
+import submitWorkModel from "./model/submitWork.model";
+
 const calculateTotalWorkingHours = (
   attendance: Partial<IAttendance>
 ): number => {
@@ -215,7 +217,6 @@ const getAssignAppointment = async (req: Request, res: Response) => {
       const endOfDay = new Date(search.setHours(23, 59, 59, 999));
 
       console.log(startOfDay, endOfDay, search);
-      
 
       // Step 4: Add a match stage for the specific AppointmentDate if searchDate is provided
       pipeline.push({
@@ -429,14 +430,14 @@ const employeeCheckIn = async (req: Request, res: Response) => {
         appointmentStatus: "CHECKED IN",
       }
     );
-    if(!createCheckIn){
+    if (!createCheckIn) {
       return res.status(400).json(
         myResponse({
           statusCode: 400,
           status: "failed",
           message: "Appointment CheckIn request Failed",
         })
-      )
+      );
     }
 
     const notificationForEmployee = await notificationModel.create({
@@ -445,10 +446,7 @@ const employeeCheckIn = async (req: Request, res: Response) => {
       recipientId: createCheckIn.user,
     });
 
-    io.emit(
-      `notification::${createCheckIn.user}`,
-      notificationForEmployee
-    );
+    io.emit(`notification::${createCheckIn.user}`, notificationForEmployee);
 
     res.status(200).json(
       myResponse({
@@ -458,7 +456,6 @@ const employeeCheckIn = async (req: Request, res: Response) => {
         // data: createCheckIn,
       })
     );
-      
   } catch (error) {
     console.log("Error in employeeCheckIn controller: ", error);
     res.status(500).json({
@@ -469,7 +466,6 @@ const employeeCheckIn = async (req: Request, res: Response) => {
   }
 };
 
-
 // work submission
 
 const getInputField = async (req: Request, res: Response) => {
@@ -478,47 +474,46 @@ const getInputField = async (req: Request, res: Response) => {
     if (userRole !== "EMPLOYEE") {
       return res.status(401).json(
         myResponse({
-          statusCode: 401,  
+          statusCode: 401,
           status: "failed",
           message: "You are not authorized to perform this action",
-        })  
-      )
+        })
+      );
     }
-    const {serviceId} = req.query;
+    const { serviceId } = req.query;
 
-    if(!serviceId){
+    if (!serviceId) {
       return res.status(400).json(
         myResponse({
           statusCode: 400,
           status: "failed",
           message: "serviceId are required",
         })
-      )
+      );
     }
 
-    
     const inputField = await questionModel.find({
       serviceId: serviceId,
-      inputType: "INPUT"
+      inputType: "INPUT",
     });
 
-    if(!inputField || inputField.length === 0){
+    if (!inputField || inputField.length === 0) {
       return res.status(400).json(
         myResponse({
           statusCode: 400,
           status: "failed",
           message: "Input Field not found",
         })
-      )
+      );
     }
     res.status(200).json(
       myResponse({
         statusCode: 200,
         status: "success",
         message: "Input Field found successfully",
-        data: inputField
+        data: inputField,
       })
-    )
+    );
   } catch (error) {
     console.log("Error in getInputField controller: ", error);
     res.status(500).json({
@@ -526,9 +521,8 @@ const getInputField = async (req: Request, res: Response) => {
       status: "failed",
       message: "Internal Server Error",
     });
-    
   }
-}
+};
 
 const getCheckBoxField = async (req: Request, res: Response) => {
   try {
@@ -536,46 +530,46 @@ const getCheckBoxField = async (req: Request, res: Response) => {
     if (userRole !== "EMPLOYEE") {
       return res.status(401).json(
         myResponse({
-          statusCode: 401,  
+          statusCode: 401,
           status: "failed",
           message: "You are not authorized to perform this action",
-        })  
-      )
+        })
+      );
     }
-    const {serviceId} = req.query;
+    const { serviceId } = req.query;
 
-    if(!serviceId){
+    if (!serviceId) {
       return res.status(400).json(
         myResponse({
           statusCode: 400,
           status: "failed",
           message: "serviceId are required",
         })
-      )
+      );
     }
 
     const checkBoxField = await questionModel.find({
       serviceId: serviceId,
-      inputType: "CHECKBOX"
+      inputType: "CHECKBOX",
     });
 
-    if(!checkBoxField || checkBoxField.length === 0){
+    if (!checkBoxField || checkBoxField.length === 0) {
       return res.status(400).json(
         myResponse({
           statusCode: 400,
           status: "failed",
           message: "CheckBox Field not found",
         })
-      )
+      );
     }
     res.status(200).json(
       myResponse({
         statusCode: 200,
         status: "success",
         message: "CheckBox Field found successfully",
-        data: checkBoxField
+        data: checkBoxField,
       })
-    )
+    );
   } catch (error) {
     console.log("Error in getCheckBoxField controller: ", error);
     res.status(500).json(
@@ -584,12 +578,317 @@ const getCheckBoxField = async (req: Request, res: Response) => {
         status: "failed",
         message: "Internal Server Error",
       })
-    )
+    );
   }
-}
+};
 
+const workSubmission = async (req: Request, res: Response) => {
+  try {
+    const userRole = req.userRole;
+    if (userRole !== "EMPLOYEE") {
+      return res.status(401).json(
+        myResponse({
+          statusCode: 401,
+          status: "failed",
+          message: "You are not authorized to perform this action",
+        })
+      );
+    }
 
+    const { assignAppointmentId, inputField, checkBoxField, workNote } =
+      req.body;
 
+    if (!assignAppointmentId) {
+      return res.status(400).json(
+        myResponse({
+          statusCode: 400,
+          status: "failed",
+          message: "assignAppointmentId are required",
+        })
+      );
+    }
 
+    if (!inputField || inputField.length === 0) {
+      return res.status(400).json(
+        myResponse({
+          statusCode: 400,
+          status: "failed",
+          message: "inputField are required",
+        })
+      );
+    }
+    if (!checkBoxField || checkBoxField.length === 0) {
+      return res.status(400).json(
+        myResponse({
+          statusCode: 400,
+          status: "failed",
+          message: "checkBoxField are required",
+        })
+      );
+    }
 
-export { createAttendance, getAssignAppointment, unableServiceRequest, employeeCheckIn, getInputField,getCheckBoxField };
+    const getStatusAssignedAppointment = await employeeAssignModel
+      .findOne({ _id: assignAppointmentId, employeeId: req.userId })
+      .populate("appointmentId");
+
+    if (!getStatusAssignedAppointment) {
+      return res.status(400).json(
+        myResponse({
+          statusCode: 400,
+          status: "failed",
+          message: "Appointment not found",
+        })
+      );
+    }
+
+    const appointment = getStatusAssignedAppointment.appointmentId as any;
+
+    if (appointment && appointment?.appointmentStatus !== "CHECKED IN") {
+      return res.status(400).json(
+        myResponse({
+          statusCode: 400,
+          status: "failed",
+          message:
+            "You cannot submit work for this appointment as it is not checked in",
+        })
+      );
+    }
+
+    const workSubmission = await submitWorkModel.create({
+      assignAppointmentId,
+      inputField,
+      checkBoxField,
+      workNote,
+    });
+
+    // Further processing and saving the work submission can be done here.
+
+    return res.status(200).json(
+      myResponse({
+        statusCode: 200,
+        status: "success",
+        message: "Work submitted successfully",
+        data: workSubmission,
+      })
+    );
+  } catch (error) {
+    console.log("Error in workSubmission controller: ", error);
+
+    return res.status(500).json(
+      myResponse({
+        statusCode: 500,
+        status: "error",
+        message: "An error occurred while submitting work",
+      })
+    );
+  }
+};
+
+const workUploadPhoto = async (req: Request, res: Response) => {
+  try {
+    const userRole = req.userRole;
+    if (userRole !== "EMPLOYEE") {
+      return res.status(401).json(
+        myResponse({
+          statusCode: 401,
+          status: "failed",
+          message: "You are not authorized to perform this action",
+        })
+      );
+    }
+    const { workSubmissionId } = req.body;
+    if (!workSubmissionId) {
+      res.status(400).json(
+        myResponse({
+          statusCode: 400,
+          status: "failed",
+          message: "workSubmissionId are required",
+        })
+      );
+    }
+
+    console.log(req.files);
+
+    let images = [];
+    if (!req.files?.length || req.files?.length === 0) {
+      return res.status(400).json(
+        myResponse({
+          statusCode: 400,
+          status: "failed",
+          message: "images are required",
+        })
+      );
+    }
+
+    const files = req.files as Express.Multer.File[];
+
+    for (const file of files) {
+      console.log(file);
+      images.push({
+        publicFileURL: `images/users/${file?.filename}`,
+        path: `public\\images\\users\\${file?.filename}`,
+      });
+    }
+
+    console.log(images);
+
+    const workSubmission = await submitWorkModel.findByIdAndUpdate(
+      workSubmissionId,
+      {
+        images,
+      }
+    );
+
+    const getAssignAppointment = await employeeAssignModel.findOne({
+      _id: workSubmission?.assignAppointmentId,
+      employeeId: req.userId,
+    });
+
+    // const notificationForEmployee = await notificationModel.create({
+    //   message: `${req.user.name} Checked in successfully`,
+    //   role: "USER",
+    //   recipientId: createCheckIn.user,
+    // });
+
+    // io.emit(`notification::${createCheckIn.user}`, notificationForEmployee);
+
+    if (!getAssignAppointment) {
+      return res.status(400).json(
+        myResponse({
+          statusCode: 400,
+          status: "failed",
+          message: "getAssignAppointment not found",
+        })
+      );
+    }
+
+    const getAppointment = await appointmentModel.findOne({
+      _id: getAssignAppointment?.appointmentId,
+    });
+
+    if (!getAppointment) {
+      return res.status(400).json(
+        myResponse({
+          statusCode: 400,
+          status: "failed",
+          message: "getAppointment not found",
+        })
+      );
+    }
+
+    getAppointment.appointmentStatus = "COMPLETED";
+    await getAppointment?.save();
+
+    if (!workSubmission) {
+      return res.status(400).json(
+        myResponse({
+          statusCode: 400,
+          status: "failed",
+          message: "workSubmission not found",
+        })
+      );
+    }
+
+    res.status(200).json(
+      myResponse({
+        statusCode: 200,
+        status: "success",
+        message: "Work submitted successfully",
+        data: workSubmission,
+      })
+    );
+  } catch (error) {
+    console.log("Error in workUploadPhoto controller: ", error);
+    return res.status(500).json(
+      myResponse({
+        statusCode: 500,
+        status: "error",
+        message: "An error occurred while submitting work",
+      })
+    );
+  }
+};
+
+const getWorkSubmission = async (req: Request, res: Response) => {
+  try {
+    const userRole = req.userRole;
+    if (userRole !== "EMPLOYEE") {
+      return res.status(401).json(
+        myResponse({
+          statusCode: 401,
+          status: "failed",
+          message: "You are not authorized to perform this action",
+        })
+      );
+    }
+    const { assignAppointmentId } = req.query;
+    if (!assignAppointmentId) {
+      return res.status(400).json(
+        myResponse({
+          statusCode: 400,
+          status: "failed",
+          message: "assignAppointmentId are required",
+        })
+      );
+    }
+
+    const workSubmission = await submitWorkModel
+      .findOne({ assignAppointmentId })
+      .populate({
+        path: "assignAppointmentId",
+        populate: [
+          {
+            path: "employeeId",
+            match: { _id: req.userId },
+          },
+          {
+            path: "appointmentId",
+          },
+
+          {
+            path: "managerId",
+          },
+        ],
+      });
+
+    if (!workSubmission) {
+      return res.status(400).json(
+        myResponse({
+          statusCode: 400,
+          status: "failed",
+          message: "work Submission not found",
+        })
+      );
+    }
+
+    res.status(200).json(
+      myResponse({
+        statusCode: 200,
+        status: "success",
+        message: "Work found successfully",
+        data: workSubmission,
+      })
+    );
+  } catch (error) {
+    console.log("Error in getWorkSubmission controller: ", error);
+    return res.status(500).json(
+      myResponse({
+        statusCode: 500,
+        status: "error",
+        message: "An error occurred while fetching work",
+      })
+    );
+  }
+};
+
+export {
+  createAttendance,
+  getAssignAppointment,
+  unableServiceRequest,
+  employeeCheckIn,
+  getInputField,
+  getCheckBoxField,
+  workSubmission,
+  workUploadPhoto,
+  getWorkSubmission,
+};

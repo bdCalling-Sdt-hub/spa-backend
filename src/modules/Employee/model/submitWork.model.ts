@@ -17,7 +17,6 @@ interface IWorkSubmit {
   }[];
 }
 
-
 const workSubmitSchema: Schema<IWorkSubmit> = new mongoose.Schema(
   {
     workNote: {
@@ -26,7 +25,7 @@ const workSubmitSchema: Schema<IWorkSubmit> = new mongoose.Schema(
     },
     inputField: [
       {
-        question: {
+        questionId: {
           type: Schema.Types.ObjectId,
           ref: "Question",
           required: true,
@@ -39,7 +38,7 @@ const workSubmitSchema: Schema<IWorkSubmit> = new mongoose.Schema(
     ],
     checkBoxField: [
       {
-        question: {
+        questionId: {
           type: Schema.Types.ObjectId,
           ref: "Question",
           required: true,
@@ -56,12 +55,15 @@ const workSubmitSchema: Schema<IWorkSubmit> = new mongoose.Schema(
       required: true,
     },
     images: [
-        {
-            type: Object,
-            required: false,
-            default: { publicFileURL: "images/users/user.png", path: "public\\images\\users\\user.png" },
-        }
-    ]
+      {
+        type: Object,
+        required: false,
+        default: {
+          publicFileURL:"images/users/user.png",
+          path: "public\\images\\users\\user.png",
+        },
+      },
+    ],
   },
   {
     timestamps: true,
