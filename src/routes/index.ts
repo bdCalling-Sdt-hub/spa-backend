@@ -7,6 +7,7 @@ import { ManagerRoutes } from "../modules/Manager/manager.router";
 import { UpdateUserRoutes } from "../modules/UpdateUser/userUpdate.route";
 import { SettingsRoutes } from "../modules/Settings/settings.route";
 import { ChatRoutes } from "../modules/Chat/chat.route";
+import { AdminRoutes } from "../modules/Admin/admin.route";
 
 const router = Router();
 
@@ -24,14 +25,14 @@ const moduleRoutes = [
     route:CustomerRoutes
   },
   {
-    path: "/employee",
-    route: EmployeeRoutes,
-  },
-  {
     path: "/manager",
     route: ManagerRoutes,
   },
   {
+    path: "/admin",
+    route: AdminRoutes,
+  }
+  ,{
     path: "/user-profile-update",
     route: UpdateUserRoutes
   },

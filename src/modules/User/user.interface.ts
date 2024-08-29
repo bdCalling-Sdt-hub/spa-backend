@@ -11,6 +11,7 @@
   isVerified: boolean;
   isDeleted: boolean;
   isBlocked: boolean;
+  isEmployee: boolean;
   image?: {
     publicFileURL: string;
     path: string;

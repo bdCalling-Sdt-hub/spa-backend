@@ -4,6 +4,7 @@ import AppointmentModel from "./customer.model";
 import { Types } from "mongoose";
 import paginationBuilder from "../../utils/paginationBuilder";
 import assignEmployeeModel from "../Manager/Model/employeeAssign.model";
+import submitWorkModel from "../Employee/model/submitWork.model";
 
 const createAppointment = async (req: Request, res: Response) => {
   try {
@@ -333,9 +334,91 @@ const getSingleAssignedAppointment = async (req: Request, res: Response) => {
   }
 };
 
+const getWorkSubmissionByUser = async (req: Request, res: Response) => {
+  try {
+    const userRole = req.userRole;
+    if (userRole !== "USER") {
+      return res.status(401).json(
+        myResponse({
+          statusCode: 401,
+          status: "failed",
+          message: "You are not authorized to perform this action",
+        })
+      );
+    }
+    const { assignAppointmentId } = req.query;
+    if (!assignAppointmentId) {
+      return res.status(400).json(
+        myResponse({
+          statusCode: 400,
+          status: "failed",
+          message: "assignAppointmentId are required",
+        })
+      );
+    }
+
+    const workSubmission = await submitWorkModel
+      .findOne({ assignAppointmentId })
+      .populate({
+        path: "assignAppointmentId",
+        populate: [
+          {
+            path: "employeeId",
+           
+          },
+          {
+            path: "appointmentId",
+            populate: [
+              {
+                path: "user",
+                match: { _id: req.userId },
+              },
+            ]
+          },
+
+          {
+            path: "managerId",
+          },
+        ],
+      });
+
+    if (!workSubmission) {
+      return res.status(400).json(
+        myResponse({
+          statusCode: 400,
+          status: "failed",
+          message: "work Submission not found",
+        })
+      );
+    }
+
+    res.status(200).json(
+      myResponse({
+        statusCode: 200,
+        status: "success",
+        message: "Work found successfully",
+        data: workSubmission,
+      })
+    );
+  } catch (error) {
+    console.log("Error in getWorkSubmissionByUser controller: ", error);
+    return res.status(500).json(
+      myResponse({
+        statusCode: 500,
+        status: "error",
+        message: "An error occurred while fetching work",
+      })
+    );
+  }
+};
+
+
+
+
 export {
   createAppointment,
   getUserAppointments,
   getOnlyAssignedAppointments,
   getSingleAssignedAppointment,
+  getWorkSubmissionByUser,
 };

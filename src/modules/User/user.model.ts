@@ -42,6 +42,7 @@ const userSchema: Schema<IUser> = new mongoose.Schema(
       isVerified: { type: Boolean, default: false },
       isDeleted: { type: Boolean, default: false },
       isBlocked: { type: Boolean, default: false },
+      isEmployee: { type: Boolean, default: false },
       image: {
         type: Object,
         required: false,

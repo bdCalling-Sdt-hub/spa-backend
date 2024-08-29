@@ -451,6 +451,27 @@ const assignEmployee = async (req: Request, res: Response) => {
       );
     }
 
+    const getAppointment = await AppointmentModel.findById(appointmentId);
+    if(!getAppointment) {
+      return res.status(400).json(
+        myResponse({
+          statusCode: 400,
+          status: "failed",
+          message: "Appointment not found",
+        })
+      );
+    }
+  if(getAppointment.appointmentStatus as string !== "PENDING") {
+    return res.status(400).json(
+      myResponse({
+        statusCode: 400,
+        status: "failed",
+        message: "Appointment is not pending",
+      })
+    ); 
+  }
+
+
     const assignEmployee = await assignEmployeeModel.create({
       managerId: userId,
       employeeId,
@@ -1020,7 +1041,6 @@ const managerCalendar = async (req: Request, res: Response) => {
   }
 };
 
-
 // const assignAppointmentList = async (req: Request, res: Response) => {
 //   try {
 //     const userRole = req.userRole;
@@ -1057,7 +1077,7 @@ const managerCalendar = async (req: Request, res: Response) => {
 //         path: "appointmentId",
 //         match: appointmentDateFilter
 //           && { appointmentDate: appointmentDateFilter },
-          
+
 //         populate: {
 //           path: "user",
 //           select: "-password -__v", // Exclude unnecessary fields
@@ -1095,8 +1115,6 @@ const managerCalendar = async (req: Request, res: Response) => {
 //     );
 //   }
 // };
-
-
 
 const assignAppointmentList = async (req: Request, res: Response) => {
   try {
@@ -1151,17 +1169,17 @@ const assignAppointmentList = async (req: Request, res: Response) => {
       ? new Date(appointmentDate as string)
       : null;
 
-
-      console.log(appointmentDateFilter);
-      
+    console.log(appointmentDateFilter);
 
     // Filter the appointments by appointmentDate if provided
     const filteredAppointments = appointmentDateFilter
-      ? getAssignAppointment.filter((assignment: any) =>
-          assignment.appointmentId &&
-          assignment.appointmentId.appointmentDate &&
-          new Date(assignment.appointmentId.appointmentDate).toDateString() ===
-            appointmentDateFilter.toDateString()
+      ? getAssignAppointment.filter(
+          (assignment: any) =>
+            assignment.appointmentId &&
+            assignment.appointmentId.appointmentDate &&
+            new Date(
+              assignment.appointmentId.appointmentDate
+            ).toDateString() === appointmentDateFilter.toDateString()
         )
       : getAssignAppointment;
 
@@ -1195,10 +1213,84 @@ const assignAppointmentList = async (req: Request, res: Response) => {
   }
 };
 
+const changeServiceTech = async (req: Request, res: Response) => {
+  try {
+    const userRole = req.userRole;
+    if (userRole !== "MANAGER") {
+      return res.status(401).json(
+        myResponse({
+          statusCode: 401,
+          status: "failed",
+          message: "You are not authorized to perform this action",
+        })
+      );
+    }
 
+    const { assignAppointmentId, employeeId } = req.body;
+    if (
+      !mongoose.Types.ObjectId.isValid(assignAppointmentId as string) ||
+      !mongoose.Types.ObjectId.isValid(employeeId as string)
+    ) {
+      return res.status(400).json(
+        myResponse({
+          statusCode: 400,
+          status: "failed",
+          message: "AssignAppointmentId and EmployeeId fields are required",
+        })
+      );
+    }
 
+    const getAssignAppointment = await assignEmployeeModel
+      .findOne({ _id: assignAppointmentId })
+      .populate({
+        path: "appointmentId",
+      });
+    console.log(getAssignAppointment);
 
+    if (!getAssignAppointment) {
+      return res.status(404).json(
+        myResponse({
+          statusCode: 404,
+          status: "failed",
+          message: "Appointment not found",
+        })
+      );
+    }
+    if (
+      (getAssignAppointment.appointmentId as any).appointmentStatus ===
+      "ASSIGNED"
+    ) {
+      getAssignAppointment.employeeId = employeeId;
+      await getAssignAppointment.save();
+      const notificationForEmployee = await notificationModel.create({
+        message: `${req.user.name} appointment has been assigned to You`,
+        role: "EMPLOYEE",
+        recipientId: employeeId,
+      });
 
+      io.emit(`notification::${employeeId}`, notificationForEmployee);
+    }else{
+      return res.status(400).json(
+        myResponse({
+          statusCode: 400,
+          status: "failed",
+          message: "Appointment Already assigned And cannot be changed",
+        })
+      );
+    }
+
+    
+  } catch (error) {
+    console.log("Error in changeServiceTech controller: ", error);
+    res.status(500).json(
+      myResponse({
+        statusCode: 500,
+        status: "failed",
+        message: "Internal Server Error",
+      })
+    );
+  }
+};
 
 export {
   createManager,
@@ -1213,4 +1305,5 @@ export {
   unableServiceStatus,
   managerCalendar,
   assignAppointmentList,
+  changeServiceTech,
 };
