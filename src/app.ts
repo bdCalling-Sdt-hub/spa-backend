@@ -26,8 +26,10 @@ app.use(express.static("public"));
 
 app.use((req: Request, res: Response, next: NextFunction) => {
   logger.info(`Incoming request: ${req.method} ${req.url}`);
+
   next();
 });
+// app.use(morgan("combined", { stream: logger.stream }));
 
 //application router
 app.use('/api/v1',router)
