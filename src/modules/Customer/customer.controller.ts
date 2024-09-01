@@ -5,6 +5,9 @@ import { Types } from "mongoose";
 import paginationBuilder from "../../utils/paginationBuilder";
 import assignEmployeeModel from "../Manager/Model/employeeAssign.model";
 import submitWorkModel from "../Employee/model/submitWork.model";
+import { io } from "../../server";
+import notificationModel from "../Manager/Model/notification.model";
+import userModel from "../User/user.model";
 
 const createAppointment = async (req: Request, res: Response) => {
   try {
@@ -79,6 +82,23 @@ const createAppointment = async (req: Request, res: Response) => {
         })
       );
     }
+
+    console.log("createAppointment: ", createAppointment);
+
+    const getAdmin = await userModel.findOne({ role: "ADMIN" }) as any;
+    console.log("getAdmin: ", getAdmin);
+    
+    
+
+    const notificationForAdmin = await notificationModel.create({
+      message: `${req.user.name} Booked an Service`,
+      role: "ADMIN",
+      recipientId: getAdmin._id,
+    });
+
+    io.emit(`notification::${getAdmin._id}`, notificationForAdmin);
+
+
 
     res.status(200).json(
       myResponse({

@@ -6,7 +6,7 @@ import userModel from "../User/user.model";
 import mongoose from "mongoose";
 import chatModel from "../Chat/model/chat.model";
 import messageModel from "../Chat/model/message.model";
-import attendanceModel  from "../Employee/employee.model";
+import attendanceModel from "../Employee/employee.model";
 
 const getAllAppointment = async (req: Request, res: Response) => {
   try {
@@ -386,8 +386,12 @@ const getChatListSingleManager = async (req: Request, res: Response) => {
 
     const getChatList = await chatModel
       .find({ participants: { $in: [id] } })
-      .populate('lastMessage participants').skip(skip).limit(limit);
-      const totalData = await chatModel.countDocuments({participants: { $in: [id] }});
+      .populate("lastMessage participants")
+      .skip(skip)
+      .limit(limit);
+    const totalData = await chatModel.countDocuments({
+      participants: { $in: [id] },
+    });
 
     if (getChatList.length === 0) {
       return res.status(400).json(
@@ -470,31 +474,35 @@ const getChatMessage = async (req: Request, res: Response) => {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
     const skip = (page - 1) * limit;
-    if(!mongoose.Types.ObjectId.isValid(chatId)) {
+    if (!mongoose.Types.ObjectId.isValid(chatId)) {
       return res.status(400).json(
         myResponse({
           statusCode: 400,
           status: "failed",
           message: "Invalid chat id provided",
         })
-      )
+      );
     }
 
-    const totalData = await messageModel.countDocuments({chatId: chatId});
+    const totalData = await messageModel.countDocuments({ chatId: chatId });
     const pagination = paginationBuilder({
       totalData,
       limit,
       currentPage: page,
     });
-    const getChatMessage = await messageModel.find({chatId: chatId}).populate('senderId receiverId').skip(skip).limit(limit);
-    if(getChatMessage.length === 0) {
+    const getChatMessage = await messageModel
+      .find({ chatId: chatId })
+      .populate("senderId receiverId")
+      .skip(skip)
+      .limit(limit);
+    if (getChatMessage.length === 0) {
       return res.status(400).json(
         myResponse({
           statusCode: 400,
           status: "failed",
           message: "No Messages found",
         })
-      )
+      );
     }
 
     res.status(200).json(
@@ -503,7 +511,7 @@ const getChatMessage = async (req: Request, res: Response) => {
         status: "success",
         message: "Messages fetched successfully",
         data: getChatMessage,
-        pagination
+        pagination,
       })
     );
   } catch (error) {
@@ -516,7 +524,7 @@ const getChatMessage = async (req: Request, res: Response) => {
       })
     );
   }
-}
+};
 
 const getAllUser = async (req: Request, res: Response) => {
   try {
@@ -535,18 +543,22 @@ const getAllUser = async (req: Request, res: Response) => {
     const limit = parseInt(req.query.limit as string) || 10;
     const skip = (page - 1) * limit;
     const totalData = await userModel.countDocuments({
-      role: "USER",});
-    const getUser = await userModel.find({role: "USER"}).skip(skip).limit(limit);
-    if(getUser.length === 0) {
+      role: "USER",
+    });
+    const getUser = await userModel
+      .find({ role: "USER" })
+      .skip(skip)
+      .limit(limit);
+    if (getUser.length === 0) {
       return res.status(400).json(
         myResponse({
           statusCode: 400,
           status: "failed",
           message: "No Users found",
         })
-      )
+      );
     }
-    
+
     const pagination = paginationBuilder({
       totalData,
       limit,
@@ -558,10 +570,9 @@ const getAllUser = async (req: Request, res: Response) => {
         status: "success",
         message: "Users fetched successfully",
         data: getUser,
-        pagination
+        pagination,
       })
     );
-
   } catch (error) {
     console.log("Error in getAllUser controller: ", error);
     res.status(500).json(
@@ -571,9 +582,8 @@ const getAllUser = async (req: Request, res: Response) => {
         message: "Internal Server Error",
       })
     );
-    
   }
-}
+};
 
 const getAllEmployee = async (req: Request, res: Response) => {
   try {
@@ -592,18 +602,23 @@ const getAllEmployee = async (req: Request, res: Response) => {
     const limit = parseInt(req.query.limit as string) || 10;
     const skip = (page - 1) * limit;
     const totalData = await userModel.countDocuments({
-      role: "EMPLOYEE",isEmployee: true});
-    const getManager = await userModel.find({role: "EMPLOYEE",isEmployee: true}).skip(skip).limit(limit);
-    if(getManager.length === 0) {
+      role: "EMPLOYEE",
+      isEmployee: true,
+    });
+    const getManager = await userModel
+      .find({ role: "EMPLOYEE", isEmployee: true })
+      .skip(skip)
+      .limit(limit);
+    if (getManager.length === 0) {
       return res.status(400).json(
         myResponse({
           statusCode: 400,
           status: "failed",
           message: "No Employees found",
         })
-      )
+      );
     }
-    
+
     const pagination = paginationBuilder({
       totalData,
       limit,
@@ -615,10 +630,9 @@ const getAllEmployee = async (req: Request, res: Response) => {
         status: "success",
         message: "Managers fetched successfully",
         data: getManager,
-        pagination
+        pagination,
       })
     );
-
   } catch (error) {
     console.log("Error in getAllEmployee controller: ", error);
     res.status(500).json(
@@ -628,9 +642,8 @@ const getAllEmployee = async (req: Request, res: Response) => {
         message: "Internal Server Error",
       })
     );
-    
   }
-}
+};
 
 const getSingleEmployee = async (req: Request, res: Response) => {
   try {
@@ -646,16 +659,16 @@ const getSingleEmployee = async (req: Request, res: Response) => {
     }
 
     const employeeId = req.query.id as string;
-    if(!mongoose.Types.ObjectId.isValid(employeeId)) {
+    if (!mongoose.Types.ObjectId.isValid(employeeId)) {
       return res.status(400).json(
         myResponse({
           statusCode: 400,
           status: "failed",
           message: "Please provide an employee id",
         })
-      )
+      );
     }
-    
+
     const getEmployee = await userModel.findOne({ _id: employeeId });
     if (!getEmployee) {
       return res.status(400).json(
@@ -685,7 +698,7 @@ const getSingleEmployee = async (req: Request, res: Response) => {
       })
     );
   }
-}
+};
 
 const getAllEmployeeAttendance = async (req: Request, res: Response) => {
   try {
@@ -700,19 +713,26 @@ const getAllEmployeeAttendance = async (req: Request, res: Response) => {
       );
     }
 
+    const date = req.query.date as string;
+    console.log(new Date(date));
+
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
     const skip = (page - 1) * limit;
     const totalData = await attendanceModel.countDocuments();
-    const getAttendance = await attendanceModel.find().populate("userId").skip(skip).limit(limit);
-    if(getAttendance.length === 0) {
+    const getAttendance = await attendanceModel
+      .find(date ? { date: new Date(date) } : {})
+      .populate("userId")
+      .skip(skip)
+      .limit(limit);
+    if (getAttendance.length === 0) {
       return res.status(400).json(
         myResponse({
           statusCode: 400,
           status: "failed",
           message: "No attendance found",
         })
-      )
+      );
     }
 
     const pagination = paginationBuilder({
@@ -726,7 +746,7 @@ const getAllEmployeeAttendance = async (req: Request, res: Response) => {
         status: "success",
         message: "Attendance fetched successfully",
         data: getAttendance,
-        pagination
+        pagination,
       })
     );
   } catch (error) {
@@ -738,9 +758,202 @@ const getAllEmployeeAttendance = async (req: Request, res: Response) => {
         message: "Internal Server Error",
       })
     );
+  }
+};
+
+const completeWorkGraph = async (req: Request, res: Response) => {
+  try {
+    const userRole = req.userRole;
+    if (userRole !== "ADMIN") {
+      return res.status(400).json(
+        myResponse({
+          statusCode: 400,
+          status: "failed",
+          message: "You are not authorized to access this route",
+        })
+      );
+    }
+
+    let year = req.query.year as any;
+
+    if (!year) {
+      const currentDate = new Date();
+      year = currentDate.getFullYear().toString();
+    }
+    console.log(year);
     
+    const startDate = new Date(`${year}-01-01`);
+    const endDate = new Date(`${year}-12-31`);
+
+    console.log(startDate, endDate);
+
+    const data = await AppointmentModel.aggregate([
+      {
+        $match: {
+          appointmentStatus: "COMPLETED",
+          appointmentDate: {
+            $gte: startDate,
+            $lte: endDate,
+          },
+        },
+      },
+    ]);
+
+    const monthlyData = Array.from({ length: 12 }, (_, i) => {
+      const month = new Date(year , i, 1).toLocaleString("en-us",{
+        month: "short"
+      });
+      // console.log(month);
+      
+      const total = data.reduce((acc, curr) => {
+        const workCompleteMonth = new Date(curr.createdAt).getMonth();
+        if (workCompleteMonth === i) {
+          return acc + 1;
+        } else {
+          return acc;
+        }
+      },0)
+      return {name: month, value: total};
+    });
+    res.status(200).json(
+      myResponse({
+        statusCode: 200,
+        status: "success",
+        message: "Data fetched successfully",
+        data: monthlyData
+      })
+    );
+  } catch (error) {
+    console.log("Error in completeWorkGraph controller: ", error);
+    res.status(500).json(
+      myResponse({
+        statusCode: 500,
+        status: "failed",
+        message: "Internal Server Error",
+      })
+    );
+  }
+};
+
+
+const adminStatus = async (req: Request, res: Response) => {
+  try {
+    const userRole = req.userRole;
+    if (userRole !== "ADMIN") {
+      return res.status(400).json(
+        myResponse({
+          statusCode: 400,
+          status: "failed",
+          message: "You are not authorized to access this route",
+        })
+      );
+    }
+
+    const totalWorkDone = await AppointmentModel.countDocuments({
+      appointmentStatus: "COMPLETED"});
+      
+    const totalManager = await userModel.countDocuments({
+      role: "MANAGER"});
+    
+      const totalEmployee = await userModel.countDocuments({
+        role: "EMPLOYEE"});
+
+      const  totalPoolCleaning = await AppointmentModel.find().populate([
+        {
+          path: "service",
+          match: { type: "POOL_CLEANING" },
+        
+        }
+      ])
+      
+      const totalPoolRemodeling = await AppointmentModel.find().populate([
+        {
+          path: "service",
+          match: { type: "POOL_REMODELING" },
+        }
+      ]) 
+
+      const totalSpa = await AppointmentModel.find().populate([
+        {
+          path: "service",
+          match: { type: "SPA_SERVICE" },
+        }
+      ])
+
+      
+      res.status(200).json(
+        myResponse({
+          statusCode: 200,
+          status: "success",
+          message: "Data fetched successfully",
+          data: {
+            totalWorkDone: totalWorkDone|| 0,
+            totalManager : totalManager || 0, 
+            totalEmployee: totalEmployee || 0,
+            totalPoolCleaning: totalPoolCleaning.length || 0,
+            totalPoolRemodeling: totalPoolRemodeling.length || 0,
+            totalSpa: totalSpa.length || 0
+          }
+        })
+      );
+
+
+  } catch (error) {
+    console.log("Error in adminStatus controller: ", error);
+    res.status(500).json(
+      myResponse({
+        statusCode: 500,
+        status: "failed",
+        message: "Internal Server Error",
+      })
+    );
   }
 }
+
+const recentServiceRequest = async (req: Request, res: Response) => {
+  try {
+    const userRole = req.userRole;
+    if (userRole !== "ADMIN") {
+      return res.status(400).json(
+        myResponse({
+          statusCode: 400,
+          status: "failed",
+          message: "You are not authorized to access this route",
+        })
+      );
+    }
+    const getRecentAppointment = (await AppointmentModel.find().sort({createdAt: -1}).populate("user service")).splice(0,5);
+    if(getRecentAppointment.length === 0){
+      return res.status(400).json(
+        myResponse({
+          statusCode: 400,
+          status: "failed",
+          message: "Data not found",
+        })
+      );
+    }
+
+    res.status(200).json(
+      myResponse({
+        statusCode: 200,
+        status: "success",
+        message: "Data fetched successfully",
+        data: getRecentAppointment
+      })
+    );
+  } catch (error) {
+    console.log("Error in recentServiceRequest controller: ", error);
+    res.status(500).json(
+      myResponse({
+        statusCode: 500,
+        status: "failed",
+        message: "Internal Server Error",
+      })  
+    );
+  }
+}
+
+
 
 
 export {
@@ -754,5 +967,8 @@ export {
   getAllUser,
   getAllEmployee,
   getSingleEmployee,
-  getAllEmployeeAttendance
+  getAllEmployeeAttendance,
+  completeWorkGraph,
+  adminStatus,
+  recentServiceRequest
 };

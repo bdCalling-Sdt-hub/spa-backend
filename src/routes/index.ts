@@ -8,6 +8,7 @@ import { UpdateUserRoutes } from "../modules/UpdateUser/userUpdate.route";
 import { SettingsRoutes } from "../modules/Settings/settings.route";
 import { ChatRoutes } from "../modules/Chat/chat.route";
 import { AdminRoutes } from "../modules/Admin/admin.route";
+import { NotificationRoutes } from "../modules/Notification/notification.route";
 
 const router = Router();
 
@@ -43,6 +44,10 @@ const moduleRoutes = [
   {
     path: "/chat",
     route:ChatRoutes
+  },
+  {
+    path: "/notification",
+    route:NotificationRoutes
   }
 ];
 

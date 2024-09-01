@@ -7,6 +7,7 @@ interface IService {
         publicFileURL: string;
         path: string;
     };
+    type: string;
 }
 
 

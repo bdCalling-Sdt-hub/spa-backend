@@ -1,6 +1,6 @@
 import isValidate from "../../middlewares/auth";
 import { Router } from "express";
-import { acceptOrRejectRequest, getAllAppointment, getAllEmployee, getAllEmployeeAttendance, getAllEmployeeRequest, getAllManager, getAllUser, getChatListSingleManager, getChatMessage, getSingleEmployee, getSingleManager } from "./admin.controller";
+import { acceptOrRejectRequest, adminStatus, completeWorkGraph, getAllAppointment, getAllEmployee, getAllEmployeeAttendance, getAllEmployeeRequest, getAllManager, getAllUser, getChatListSingleManager, getChatMessage, getSingleEmployee, getSingleManager, recentServiceRequest } from "./admin.controller";
 
 
 
@@ -17,6 +17,9 @@ router.get('/get-all-user',isValidate,getAllUser);
 router.get('/get-all-employee',isValidate,getAllEmployee);
 router.get('/get-single-employee',isValidate,getSingleEmployee);
 router.get('/get-all-employee-attendance',isValidate,getAllEmployeeAttendance);
+router.get('/complete-work-graph',isValidate,completeWorkGraph);
+router.get('/admin-status',isValidate,adminStatus);
+router.get('/recent-service-request',isValidate,recentServiceRequest);
 
 
 

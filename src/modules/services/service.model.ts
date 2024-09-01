@@ -22,6 +22,11 @@ const serviceSchema:Schema<IService> = new mongoose.Schema({
             required: true,
             default: "public\\images\\users\\service.png"
         }
+    },
+    type:{
+        type: String,
+        required: true,
+        enum: ["POOL_CLEANING", "POOL_REMODELING", "SPA_SERVICE"]
     }
 },
 
