@@ -2,7 +2,9 @@ import IUser from "../modules/User/user.interface";
 
 const verifyCodeService = async (user: any, code: string) => {
   try {
-    if (user.oneTimeCode === code) {
+    console.log("verifyCodeService: ", user, code);
+    
+    if (user.oneTimeCode == code) {
       user.isVerified = true;
       await user.save();
       setTimeout(async () => {

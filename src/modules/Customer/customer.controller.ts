@@ -23,34 +23,34 @@ const createAppointment = async (req: Request, res: Response) => {
     }
     const {
       serviceId,
-      customerEmail,
-      customerAddress,
-      customerPhone,
+      // customerEmail,
+      // customerAddress,
+      // customerPhone,
       appointmentDate,
       appointmentNote,
     }: {
       serviceId: Types.ObjectId;
-      customerEmail: string;
-      customerAddress: string;
-      customerPhone: string;
+      // customerEmail: string;
+      // customerAddress: string;
+      // customerPhone: string;
       appointmentDate: Date;
       appointmentNote: string;
     } = req.body;
 
     console.log(
       serviceId,
-      customerEmail,
-      customerAddress,
-      customerPhone,
+      // customerEmail,
+      // customerAddress,
+      // customerPhone,
       appointmentDate,
       appointmentNote
     );
 
     if (
       !serviceId ||
-      !customerEmail ||
-      !customerAddress ||
-      !customerPhone ||
+      // !customerEmail ||
+      // !customerAddress ||
+      // !customerPhone ||
       !appointmentDate ||
       !appointmentNote
     ) {
@@ -66,9 +66,9 @@ const createAppointment = async (req: Request, res: Response) => {
     const createAppointment = await AppointmentModel.create({
       user: req.userId,
       service: serviceId,
-      customerEmail,
-      customerAddress,
-      customerPhone,
+      // customerEmail,
+      // customerAddress,
+      // customerPhone,
       appointmentDate,
       appointmentNote,
     });

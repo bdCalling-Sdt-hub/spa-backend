@@ -1,7 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 import IAppointment from "./customer.interface";
 
-const appointmentSchema: Schema = new mongoose.Schema(
+const appointmentSchema: Schema<IAppointment> = new mongoose.Schema(
   {
     user: {
       type: Schema.Types.ObjectId,
@@ -13,33 +13,33 @@ const appointmentSchema: Schema = new mongoose.Schema(
       ref: "Services",
       required: true,
     },
-    customerEmail: {
-      type: String,
-      required: [true, "Email is required"],
-      minlength: 3,
-      maxlength: 30,
-      trim: true,
-      lowercase: true,
-      validate: {
-        validator: function (v: string) {
-          return /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(v);
-        },
-        message: "Please enter a valid Email",
-      },
-    },
-    customerAddress: {
-      type: String,
-      required: [true, "Address is required"],
-      minlength: 3,
-      maxlength: 30,
-      trim: true,
-    },
-    customerPhone: {
-      type: String,
-      required: [true, "Phone is required"],
-      minlength: 3,
-      trim: true,
-    },
+    // customerEmail: {
+    //   type: String,
+    //   required: [true, "Email is required"],
+    //   minlength: 3,
+    //   maxlength: 30,
+    //   trim: true,
+    //   lowercase: true,
+    //   validate: {
+    //     validator: function (v: string) {
+    //       return /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(v);
+    //     },
+    //     message: "Please enter a valid Email",
+    //   },
+    // },
+    // customerAddress: {
+    //   type: String,
+    //   required: [true, "Address is required"],
+    //   minlength: 3,
+    //   maxlength: 30,
+    //   trim: true,
+    // },
+    // customerPhone: {
+    //   type: String,
+    //   required: [true, "Phone is required"],
+    //   minlength: 3,
+    //   trim: true,
+    // },
     appointmentDate: {
       type: Date,
       required: [true, "Date is required"],

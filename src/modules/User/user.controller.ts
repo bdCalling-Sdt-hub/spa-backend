@@ -93,6 +93,8 @@ const verifyCode = async (req: Request, res: Response) => {
  
 
     const isVerifiedUser = await verifyCodeService(user, code);
+    console.log("isVerifiedUser: ", isVerifiedUser);
+    
     if(isVerifiedUser) {
       const accessToken = generateToken({
         email: user.email,
