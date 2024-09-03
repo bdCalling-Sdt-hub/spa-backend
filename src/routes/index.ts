@@ -42,6 +42,10 @@ const moduleRoutes = [
     route: SettingsRoutes
   },
   {
+    path: "/employee",
+    route: EmployeeRoutes
+  },
+  {
     path: "/chat",
     route:ChatRoutes
   },

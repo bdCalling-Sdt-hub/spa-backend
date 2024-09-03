@@ -25,16 +25,16 @@ app.use(cors({
 app.use(express.static("public"));
 // app.use("/public", express.static(__dirname + "/public"));
 
-// app.use((req: Request, res: Response, next: NextFunction) => {
-//   logger.info(`Incoming request: ${req.method} ${req.url}`);
+app.use((req: Request, res: Response, next: NextFunction) => {
+  logger.info(`Incoming request: ${req.method} ${req.url}`);
 
-//   next();
-// });
+  next();
+});
 
 // Custom interface to extend the Request object
-interface CustomRequest extends Request {
-  useragent?: useragent.Details;
-}
+// interface CustomRequest extends Request {
+//   useragent?: useragent.Details;
+// }
 
 // Morgan middleware to log requests with additional data
 // app.use(morgan((tokens, req: CustomRequest, res) => {
@@ -57,7 +57,7 @@ interface CustomRequest extends Request {
 //   logger.info('HTTP Request', logMessage);
 //   return null; // Morgan requires a return value; null or undefined is fine here.
 // }));
-app.use(morgan("combined"));
+// app.use(morgan("combined"));
 
 //application router
 app.use('/api/v1',router)

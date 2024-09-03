@@ -10,6 +10,7 @@ import appointmentModel from "../Customer/customer.model";
 import { io } from "../../server";
 import questionModel from "../services/model/question.model";
 import submitWorkModel from "./model/submitWork.model";
+import userModel from "../User/user.model";
 
 const calculateTotalWorkingHours = (
   attendance: Partial<IAttendance>
@@ -881,6 +882,133 @@ const getWorkSubmission = async (req: Request, res: Response) => {
   }
 };
 
+const updateEmployeeProfile = async (req: Request, res: Response) => {
+  try {
+    const userRole = req.userRole;
+    console.log("============",req.userId);
+    console.log("============",req.userRole);
+    
+    
+    if (userRole !== "EMPLOYEE") {
+      return res.status(401).json(
+        myResponse({
+          statusCode: 401,
+          status: "failed",
+          message: "You are not authorized to perform this action",
+        })
+      );
+    }
+    const { address } = req.body;
+    if(!address) {
+      return res.status(400).json(
+        myResponse({
+          statusCode: 400,
+          status: "failed",
+          message: "address are required",
+        })
+      );
+    }
+
+
+    const userDetails = await userModel.findOne({ _id: req.userId });
+
+    if (!userDetails) {
+      return res.status(400).json(
+        myResponse({
+          statusCode: 400,
+          status: "failed",
+          message: "user  not found",
+        })
+      );
+    }
+
+    let image = {
+      publicFileURL: "",
+      path:"",
+    }
+    let licenceFront = {
+      publicFileURL: "",
+      path:"",
+    };
+    let licenceBack = {
+      publicFileURL: "",
+      path:"",
+    };
+    if (!req.files) {
+      return res.status(400).json(
+        myResponse({
+          statusCode: 400,
+          status: "failed",
+          message: "Form Data are required",
+        })
+      );
+    }
+
+   
+    const file: any = req.files;
+    // for (const file of files) {
+    //   console.log(file);
+    //   images.push({
+    //     publicFileURL: `images/users/${file?.filename}`,
+    //     path: `public\\images\\users\\${file?.filename}`,
+    //   });
+    // }
+    if(file.image) {
+      image = {
+        publicFileURL: `images/users/${file.image[0]?.filename}`,
+        path: `public\\images\\users\\${file.image[0]?.filename}`,
+      } 
+      userDetails.image = image
+      await userDetails.save()
+    }
+
+    if(file.licenceFront) {
+      licenceFront = {
+        publicFileURL: `images/users/${file.licenceFront[0]?.filename}`,
+        path: `public\\images\\users\\${file.licenceFront[0]?.filename}`,
+      }
+      userDetails.licenceFront = licenceFront
+      await userDetails.save()
+    }
+
+    if(file.licenceBack) {
+      licenceBack = {
+        publicFileURL: `images/users/${file.licenceBack[0]?.filename}`,
+        path: `public\\images\\users\\${file.licenceBack[0]?.filename}`,
+      }
+      userDetails.licenceBack = licenceBack
+      await userDetails.save()
+    }
+    
+    if(address){
+      userDetails.address = address
+      await userDetails.save()
+    }
+
+ 
+    res.status(200).json(
+      myResponse({
+        statusCode: 200,
+        status: "success",
+        message: "Profile updated successfully",
+        data: userDetails,
+      })
+    )
+
+   
+  } catch (error) {
+    console.log("Error in updateEmployeeProfile controller: ", error);
+    return res.status(500).json(
+      myResponse({
+        statusCode: 500,
+        status: "error",
+        message: "An error occurred while fetching work",
+      })
+    );
+    
+  }
+}
+
 export {
   createAttendance,
   getAssignAppointment,
@@ -891,4 +1019,5 @@ export {
   workSubmission,
   workUploadPhoto,
   getWorkSubmission,
+  updateEmployeeProfile
 };
