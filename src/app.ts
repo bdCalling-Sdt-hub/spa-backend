@@ -7,7 +7,8 @@ import router from './routes';
 import globalErrorHandler from './middlewares/globalErrorHandler';
 import notFound from './middlewares/notFound';
 import logger from './logger/logger';
-
+import morgan from 'morgan';
+import useragent from 'express-useragent';
 
 
 // Create an Express application
@@ -24,12 +25,39 @@ app.use(cors({
 app.use(express.static("public"));
 // app.use("/public", express.static(__dirname + "/public"));
 
-app.use((req: Request, res: Response, next: NextFunction) => {
-  logger.info(`Incoming request: ${req.method} ${req.url}`);
+// app.use((req: Request, res: Response, next: NextFunction) => {
+//   logger.info(`Incoming request: ${req.method} ${req.url}`);
 
-  next();
-});
-// app.use(morgan("combined", { stream: logger.stream }));
+//   next();
+// });
+
+// Custom interface to extend the Request object
+interface CustomRequest extends Request {
+  useragent?: useragent.Details;
+}
+
+// Morgan middleware to log requests with additional data
+// app.use(morgan((tokens, req: CustomRequest, res) => {
+//   console.log(tokens);
+//   console.log(req.useragent);
+  
+//   const responseTime = tokens['response-time'](req, res);
+//   const ipAddress = tokens['remote-addr'](req, res);
+//   const deviceName = req.useragent ? `${req.useragent.platform} ${req.useragent.browser}` : 'Unknown Device';
+
+//   const logMessage = {
+//     method: tokens.method(req, res),
+//     url: tokens.url(req, res),
+//     status: tokens.status(req, res),
+//     ipAddress,
+//     responseTime: `${responseTime} ms`,
+//     deviceName
+//   };
+
+//   logger.info('HTTP Request', logMessage);
+//   return null; // Morgan requires a return value; null or undefined is fine here.
+// }));
+app.use(morgan("combined"));
 
 //application router
 app.use('/api/v1',router)
