@@ -858,28 +858,47 @@ const adminStatus = async (req: Request, res: Response) => {
       const totalEmployee = await userModel.countDocuments({
         role: "EMPLOYEE"});
 
-      const  totalPoolCleaning = await AppointmentModel.find().populate([
+      const  getPoolCleaning = await AppointmentModel.find({appointmentStatus:"COMPLETED"}).populate([
         {
           path: "service",
-          match: { type: "POOL_CLEANING" },
-        
         }
       ])
+      console.log("========",getPoolCleaning);
       
-      const totalPoolRemodeling = await AppointmentModel.find().populate([
+      const totalPoolCleaning = getPoolCleaning.filter((item: any) => item.service.type === "POOL_CLEANING").length || 0;
+      
+      const getPoolRemodeling = await AppointmentModel.find({appointmentStatus:"COMPLETED"}).populate([
         {
           path: "service",
-          match: { type: "POOL_REMODELING" },
         }
       ]) 
 
-      const totalSpa = await AppointmentModel.find().populate([
-        {
-          path: "service",
-          match: { type: "SPA_SERVICE" },
-        }
-      ])
+      console.log("=++++",getPoolRemodeling);
+      
+      const totalPoolRemodeling = getPoolRemodeling.filter((item: any) => item.service.type === "POOL_REMODELING").length || 0;
 
+      console.log("=======************",totalPoolRemodeling);
+      
+
+
+
+      const getSpa = await AppointmentModel.find({
+        appointmentStatus: "COMPLETED"
+      }).populate({
+        path: "service",
+      })
+
+      
+      
+
+     const totalSpaCount = getSpa?.filter((item: any) => item.service.type === "SPA_SERVICE").length || 0;
+
+     console.log("=======++++++++++++",totalSpaCount);
+     
+
+     
+     
+      
       
       res.status(200).json(
         myResponse({
@@ -890,9 +909,9 @@ const adminStatus = async (req: Request, res: Response) => {
             totalWorkDone: totalWorkDone|| 0,
             totalManager : totalManager || 0, 
             totalEmployee: totalEmployee || 0,
-            totalPoolCleaning: totalPoolCleaning.length || 0,
-            totalPoolRemodeling: totalPoolRemodeling.length || 0,
-            totalSpa: totalSpa.length || 0
+            totalPoolCleaning: totalPoolRemodeling ,
+            totalPoolRemodeling: totalPoolCleaning ,
+            totalSpa:totalSpaCount 
           }
         })
       );
