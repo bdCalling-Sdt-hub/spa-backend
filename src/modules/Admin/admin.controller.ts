@@ -174,6 +174,8 @@ const acceptOrRejectRequest = async (req: Request, res: Response) => {
         })
       );
     }
+    console.log(status,id);
+    
 
     if (status === "accept") {
       const updateStatus = await userModel.findOne({
@@ -219,8 +221,8 @@ const acceptOrRejectRequest = async (req: Request, res: Response) => {
         myResponse({
           statusCode: 200,
           status: "success",
-          message: "Employee status  successfully",
-        })
+          message: "Employee status  successfully",    
+        })  
       );
     }
   } catch (error) {

@@ -166,6 +166,75 @@ const getAllChatForUser = async (req: Request, res: Response) => {
   }
 }
 
+const getAllChatForAdmin = async (req: Request, res: Response) => {
+  try {
+    const userRole = req.userRole;
+    if(userRole !== "ADMIN") {
+      return res.status(403).json(
+        myResponse({
+          statusCode: 403,
+          status: "failed",
+          message: "You are not authorized to access this resource",
+        })
+      )
+    }
+
+    const { id } = req.params;
+    console.log(id);
+
+    if(!id) {
+      return res.status(400).json(
+        myResponse({
+          statusCode: 400,
+          status: "failed",
+          message: "user id is required",
+        })
+      )
+    }
+
+    const chats = await chatModel
+      .find({ participants: { $in: [id] } })
+      .populate([
+        {
+          path: "participants",
+        },
+        {
+          path: "lastMessage",
+        }
+      ]);
+      if(!chats) {
+        return res.status(404).json(
+          myResponse({
+            statusCode: 404,
+            status: "failed",
+            message: "Chats not found",
+          })
+        )
+      }
+      
+
+      res.status(200).json(
+        myResponse({
+          statusCode: 200,
+          status: "success",
+          message: "Chats found successfully",
+          data: chats
+        })
+      )
+
+
+    
+  } catch (error) {
+    console.log("Error in get chat controller: ", error);
+    res.status(500).json(
+      myResponse({
+        statusCode: 500,
+        status: "failed",
+        message: "Internal Server Error",
+      })
+    );
+  }
+}
 
 
 
@@ -328,4 +397,4 @@ const getMessageByChatId = async (req: Request, res: Response) => {
   }
 };
 
-export { createChatList, createMessage, getMessageByChatId,getAllChatForUser };
+export { createChatList, createMessage, getMessageByChatId,getAllChatForUser,getAllChatForAdmin };

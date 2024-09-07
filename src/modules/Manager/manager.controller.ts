@@ -35,6 +35,7 @@ const createManager = async (req: Request, res: Response) => {
     const user = await userModel.create({
       name,
       email,
+      phone,
       role: "MANAGER",
       password,
       isVerified: true,
