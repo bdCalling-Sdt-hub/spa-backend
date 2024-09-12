@@ -105,6 +105,7 @@ const createAttendance = async (req: Request, res: Response) => {
       // Calculate the total working hours
       existingAttendance.totalWorkingHours =
         calculateTotalWorkingHours(existingAttendance);
+console.log(existingAttendance.totalWorkingHours);
 
       await existingAttendance.save();
 

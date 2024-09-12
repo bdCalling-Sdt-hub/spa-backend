@@ -543,12 +543,14 @@ const getAllUser = async (req: Request, res: Response) => {
 
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
+    console.log("page: ", page, "limit: ", limit);
+    
+    const name = req.query.name as string;
+    // const date = req.query.date as string;
     const skip = (page - 1) * limit;
-    const totalData = await userModel.countDocuments({
-      role: "USER",
-    });
+    const totalData = await userModel.countDocuments(name ? { role: "USER", name: { $regex: name, $options: "i" } }: { role: "USER" });
     const getUser = await userModel
-      .find({ role: "USER" })
+      .find(name ? { role: "USER", name: { $regex: name, $options: "i" } }: { role: "USER" })
       .skip(skip)
       .limit(limit);
     if (getUser.length === 0) {
@@ -602,13 +604,13 @@ const getAllEmployee = async (req: Request, res: Response) => {
 
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
+    const name = req.query.name as string;
+    console.log(name);
+    
     const skip = (page - 1) * limit;
-    const totalData = await userModel.countDocuments({
-      role: "EMPLOYEE",
-      isEmployee: true,
-    });
+    const totalData = await userModel.countDocuments(name ? { role: "EMPLOYEE", name: { $regex: name, $options: "i" }, isEmployee: true} :{ role: "EMPLOYEE", isEmployee: true });
     const getManager = await userModel
-      .find({ role: "EMPLOYEE", isEmployee: true })
+      .find(name ? { role: "EMPLOYEE", name: { $regex: name, $options: "i" }, isEmployee: true} :{ role: "EMPLOYEE", isEmployee: true })
       .skip(skip)
       .limit(limit);
     if (getManager.length === 0) {
@@ -630,7 +632,7 @@ const getAllEmployee = async (req: Request, res: Response) => {
       myResponse({
         statusCode: 200,
         status: "success",
-        message: "Managers fetched successfully",
+        message: "Employees fetched successfully",
         data: getManager,
         pagination,
       })
@@ -716,15 +718,30 @@ const getAllEmployeeAttendance = async (req: Request, res: Response) => {
     }
 
     const date = req.query.date as string;
-    console.log(new Date(date));
+    console.log(new Date(date as string));
+    const id = req.query.id as string;
+
+    if(!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json(
+        myResponse({
+          statusCode: 400,
+          status: "failed",
+          message: "Please provide an employee id",
+        })
+      );
+    }
+
 
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
     const skip = (page - 1) * limit;
-    const totalData = await attendanceModel.countDocuments();
+    const totalData = await attendanceModel.countDocuments(date ? { date: new Date(date), userId: id } : { userId: id })
     const getAttendance = await attendanceModel
-      .find(date ? { date: new Date(date) } : {})
-      .populate("userId")
+      .find(date ? { date: new Date(date), userId: id } : { userId: id })
+      .populate({
+        path: "userId",
+        match: { _id: id },
+      })
       .skip(skip)
       .limit(limit);
     if (getAttendance.length === 0) {
@@ -772,6 +789,7 @@ const completeWorkGraph = async (req: Request, res: Response) => {
           statusCode: 400,
           status: "failed",
           message: "You are not authorized to access this route",
+           
         })
       );
     }

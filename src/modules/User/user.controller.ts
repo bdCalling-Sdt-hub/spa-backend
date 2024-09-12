@@ -163,6 +163,8 @@ const resendOtp = async (req: Request, res: Response) => {
     // Generate a new OTP
     const oneTimeCode =
       Math.floor(Math.random() * (999999 - 100000 + 1)) + 100000;
+      console.log("oneTimeCode: ", oneTimeCode);
+      
 
     if (user.oneTimeCode === null) {
       return res.status(400).json(
@@ -395,7 +397,7 @@ console.log(user.password);
         })
       );
     }
-
+    
     res.status(200).json(
       myResponse({
         statusCode: 200,
