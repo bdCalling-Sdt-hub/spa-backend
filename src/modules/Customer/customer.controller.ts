@@ -139,12 +139,13 @@ const getUserAppointments = async (req: Request, res: Response) => {
       appointmentStatus: "PENDING",
     })
       .sort({ createdAt: -1 })
-      .populate("service")
+      .populate("service user")
       .select("-createdAt -updatedAt -description -__v -image")
       .skip((page - 1) * limit)
       .limit(limit);
     const totalData = await AppointmentModel.countDocuments({
       user: req.userId,
+      appointmentStatus: "PENDING",
     });
 
     const pagination = paginationBuilder({
@@ -199,7 +200,7 @@ const getOnlyAssignedAppointments = async (req: Request, res: Response) => {
     const page = parseInt(req.query.page as string) || 1;
 
     const getAssignAppointmentList = await assignEmployeeModel
-      .find({})
+      .find({userId: req.userId})
       .populate([
         {
           path: "appointmentId",
@@ -222,16 +223,16 @@ const getOnlyAssignedAppointments = async (req: Request, res: Response) => {
       .limit(limit);
 
     if (!getAssignAppointmentList || getAssignAppointmentList.length === 0) {
-      return res.status(400).json(
+      return res.status(404).json(
         myResponse({
-          statusCode: 400,
+          statusCode: 404,
           status: "failed",
-          message: "No Appointments found",
+          message: "No Appointments Assign",
         })
       );
     }
 
-    const totalData = await assignEmployeeModel.countDocuments({}).populate([
+    const totalData = await assignEmployeeModel.countDocuments({userId: req.userId}).populate([
       {
         path: "appointmentId",
         populate: [

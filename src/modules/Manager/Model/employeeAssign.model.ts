@@ -10,6 +10,11 @@ import {IAssignEmployee} from "../manager.interface";
         ref: "User",
         required: true
       },
+      userId:{
+        type: Schema.Types.ObjectId,
+        ref: "User",
+        required: true
+      },
       employeeId:{
         type: Schema.Types.ObjectId,
         ref: "User",

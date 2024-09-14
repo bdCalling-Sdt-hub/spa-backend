@@ -5,7 +5,8 @@ interface IAssignEmployee {
         managerId: Types.ObjectId;
         employeeId: Types.ObjectId;
         appointmentId: Types.ObjectId;
-        isDelete: boolean
+        isDelete: boolean;
+        userId: Types.ObjectId
 }
 
 interface INotification {

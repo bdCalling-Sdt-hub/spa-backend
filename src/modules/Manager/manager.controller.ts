@@ -430,7 +430,7 @@ const getAppointmentRequest = async (req: Request, res: Response) => {
 const assignEmployee = async (req: Request, res: Response) => {
   try {
     const userRole = req.userRole;
-    const userId = req.userId;
+    const managerId = req.userId;
     if (userRole !== "MANAGER") {
       return res.status(403).json(
         myResponse({
@@ -441,8 +441,8 @@ const assignEmployee = async (req: Request, res: Response) => {
       );
     }
 
-    const { employeeId, appointmentId } = req.body;
-    if (!employeeId || !appointmentId) {
+    const { employeeId, appointmentId,userId } = req.body;
+    if (!employeeId || !appointmentId ||!userId) {
       return res.status(400).json(
         myResponse({
           statusCode: 400,
@@ -474,9 +474,10 @@ const assignEmployee = async (req: Request, res: Response) => {
 
 
     const assignEmployee = await assignEmployeeModel.create({
-      managerId: userId,
+      managerId: managerId,
       employeeId,
       appointmentId,
+      userId
     });
 
     if (!assignEmployee) {
