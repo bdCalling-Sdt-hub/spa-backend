@@ -200,8 +200,10 @@ const addTermsCondition = async (req: Request, res: Response) => {
         const adminId = req?.userId;
         const adminRole = req?.userRole;
         const admin = await userModel.findById(adminId);
+        console.log("admin: ", admin);
+        
 
-    if (!admin || adminRole=== "ADMIN") {
+    if (!admin || adminRole !== "ADMIN") {
             return res.status(401).json({
                 status: "error",
                 message: "You are not authorized",
@@ -211,6 +213,7 @@ const addTermsCondition = async (req: Request, res: Response) => {
         }
 
         let termsCondition = await termsAndConditionModel.findOne({});
+
 
         if (!termsCondition) {
             // If terms and conditions don't exist, create them

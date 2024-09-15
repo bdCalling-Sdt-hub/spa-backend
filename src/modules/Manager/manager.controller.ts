@@ -491,10 +491,13 @@ const assignEmployee = async (req: Request, res: Response) => {
     }
 
     const updateAppointmentStatus = await AppointmentModel.findByIdAndUpdate(
-      appointmentId,
-      { status: "ASSIGNED" },
+      {_id:appointmentId},
+      { 
+        appointmentStatus: "ASSIGNED" },
       { new: true }
     );
+    console.log(updateAppointmentStatus);
+    
 
     if (!updateAppointmentStatus) {
       return res.status(400).json(

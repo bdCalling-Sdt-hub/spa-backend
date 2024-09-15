@@ -718,6 +718,8 @@ const getAllEmployeeAttendance = async (req: Request, res: Response) => {
     }
 
     const date = req.query.date as string;
+    console.log(date);
+    
     console.log(new Date(date as string));
     const id = req.query.id as string;
 
