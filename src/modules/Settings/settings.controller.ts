@@ -376,9 +376,34 @@ const getAboutUs = async (req: Request, res: Response) => {
     }
 }
 
-
+const getLoginUser = async (req: Request, res: Response) => {
+    try {
+        const userId = req?.userId;
+        const admin = await userModel.findById(userId);
+        if(!admin){
+            return res.status(404).json(myResponse({
+                statusCode: 404,
+                status: "failed",
+                message: "Login user not found",
+            }));
+        }
+        res.status(200).json(myResponse({
+             status: "success",
+             message: "Login user found",
+             statusCode: 200,
+             data: admin
+        }));
+    } catch (error) {
+        console.log("Error in getLoginUser controller: ", error);
+        res.status(500).json(myResponse({
+             status: "failed",
+             message: "Internal Server Error",
+             statusCode: 500
+        })); 
+    }
+}
 
 
   
 
- export {changePassword, addTermsCondition, getTermsCondition, addAboutUs, getAboutUs,getPrivacyPolicy, addPrivacyPolicy}   
+ export {changePassword, addTermsCondition, getTermsCondition, addAboutUs, getAboutUs,getPrivacyPolicy, addPrivacyPolicy,getLoginUser}   

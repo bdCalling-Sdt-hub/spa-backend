@@ -35,7 +35,7 @@ const userSchema: Schema<IUser> = new mongoose.Schema(
       },
       dateOfBirth: { type: String, required: false },
       phone: { type: String, required: false },
-      address: { type: String, required: false },
+      address: { type: String, required: false, default:"" },
       privacyPolicyAccepted: { type: Boolean, default: false, required: false },
       isAdmin: { type: Boolean, default: false },
       isProfileCompleted: { type: Boolean, default: false },

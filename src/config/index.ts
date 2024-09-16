@@ -22,7 +22,7 @@ export default {
     bcryptSaltRounds: process.env.BCRYPT_SALT_ROUNDS,// Use the bcrypt salt rounds from .env or default to 10
     defaultPassword: process.env.DEFAULT_PASS || 'default_pass',  // Use the default password from .env or default
     stripeSecretKey: process.env.STRIPE_SECRET_KEY || '',  // Use the Stripe secret key from .env
-    superAdminPassword: process.env.SUPER_ADMIN_PASSWORD || 'default_super_admin_password',  // Use the super admin password from .env or default
+    superAdminPassword: process.env.SUPER_ADMIN_PASSWORD || '1qazxsw2',  // Use the super admin password from .env or default
     apiResponseLanguage: process.env.API_RESPONCE_LANGUAGE || 'en',
     node_env: process.env.NODE_ENV || 'development'  // Use the API response language from .env or default to English
 };

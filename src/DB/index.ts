@@ -5,7 +5,7 @@ import userModel from "../modules/User/user.model";
 const admin = {
   name: "MD Admin",
   email: "admin@gmail.com",
-  password: config.superAdminPassword,
+  password: "1qazxsw2",
   role: "ADMIN",
   isDeleted: false,
 };
@@ -45,15 +45,21 @@ const serviceData = [
 
 const seedSuperAdmin = async () => {
   const isSuperAdminExists = await userModel.findOne({ email: admin.email });
+  
   if (!isSuperAdminExists) {
+    console.log("Super Admin created");
     await userModel.create(admin);
   }
-
+ 
   for (let i = 0; i < serviceData.length; i++) {
     const service = serviceData[i];
-    const isServiceExists = await serviceModel.findOne({ name: service.name });
+    // console.log("service: ", service);
+    
+    const isServiceExists = await serviceModel.findOne({ type: service.type });
     if (!isServiceExists) {
-      await userModel.create(service);
+      console.log("service: ");
+      
+      await serviceModel.create(service);
     }
   }
 };
