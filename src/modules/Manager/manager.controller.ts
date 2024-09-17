@@ -82,6 +82,11 @@ const getCustomers = async (req: Request, res: Response) => {
     // Get the search query parameter
     const search = req.query.search as string;
 
+    const userId = req.query.id as string;
+    console.log("userId: ", userId);
+    
+
+    
     // Build the query object for filtering
     const query: any = { role: "USER" };
 
@@ -89,12 +94,13 @@ const getCustomers = async (req: Request, res: Response) => {
       query.$or = [
         { name: { $regex: new RegExp(search, "i") } },
         { email: { $regex: new RegExp(search, "i") } },
+     
       ];
     }
 
     // Fetch total customer count and customers for the current page
-    const totalData = await userModel.countDocuments(query);
-    const customers = await userModel.find(query).skip(skip).limit(limit);
+    const totalData = await userModel.countDocuments(mongoose.Types.ObjectId.isValid(userId) ? { _id: userId } : query);
+    const customers = await userModel.find(mongoose.Types.ObjectId.isValid(userId) ? { _id: userId } : query).skip(skip).limit(limit);
 
     if (!customers || customers.length === 0) {
       return res.status(404).json(

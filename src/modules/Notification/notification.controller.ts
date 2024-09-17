@@ -27,7 +27,7 @@ const getNotification = async (req: Request, res: Response) => {
 
         const totalData = await notificationModel.countDocuments({ recipientId: userId });
 
-        const notifications = await notificationModel.find({ recipientId: userId });
+        const notifications = await notificationModel.find({ recipientId: userId }).sort({createdAt: -1}).skip(skip).limit(limit);
 
         if(!notifications || notifications.length === 0){
             return res.status(400).json(

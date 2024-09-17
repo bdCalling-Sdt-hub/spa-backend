@@ -34,7 +34,7 @@ const userSchema: Schema<IUser> = new mongoose.Schema(
         set: (v: string) => bcrypt.hashSync(v, bcrypt.genSaltSync(Number(config.bcryptSaltRounds))),
       },
       dateOfBirth: { type: String, required: false },
-      phone: { type: String, required: false },
+      phone: { type: String, required: false, default:"" },
       address: { type: String, required: false, default:"" },
       privacyPolicyAccepted: { type: Boolean, default: false, required: false },
       isAdmin: { type: Boolean, default: false },
