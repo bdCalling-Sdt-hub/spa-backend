@@ -182,12 +182,14 @@ const getAssignAppointment = async (req: Request, res: Response) => {
       );
     }
 
-    const { searchDate, page = 1, limit = 10 } = req.query;
+    const { searchDate=new Date().toISOString().split("T")[0], page = 1, limit = 10 } = req.query;
 
     // Calculate skip value for pagination
     const pageNumber = parseInt(page as string, 10);
     const limitNumber = parseInt(limit as string, 10);
     const skip = (pageNumber - 1) * limitNumber;
+
+
 
     let pipeline: any[] = [
       // Step 1: Match employee assignments
@@ -202,6 +204,7 @@ const getAssignAppointment = async (req: Request, res: Response) => {
         $lookup: {
           from: "appointments", // The name of the appointment collection
           localField: "appointmentId",
+
           foreignField: "_id",
           as: "appointmentDetails",
         },
@@ -209,6 +212,23 @@ const getAssignAppointment = async (req: Request, res: Response) => {
       // Step 3: Unwind the appointmentDetails array
       {
         $unwind: "$appointmentDetails",
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "appointmentDetails.user",
+          foreignField: "_id",
+          as: "appointmentDetails.userDetails",
+        },
+      },
+      // Step 5: Lookup for service details in appointmentDetails
+      {
+        $lookup: {
+          from: "services",
+          localField: "appointmentDetails.service",
+          foreignField: "_id",
+          as: "appointmentDetails.serviceDetails",
+        },
       },
     ];
 
@@ -273,6 +293,12 @@ const getAssignAppointment = async (req: Request, res: Response) => {
         $limit: limitNumber,
       }
     );
+
+
+    
+    // const appointmentList = await employeeAssignModel.aggregate(pipeline);
+    
+
 
     const appointmentList = await employeeAssignModel.aggregate(pipeline);
 

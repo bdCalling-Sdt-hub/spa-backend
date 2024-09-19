@@ -88,18 +88,18 @@ const getAllEmployeeRequest = async (req: Request, res: Response) => {
         })
       );
     }
+    
+    const name = req.query.name as string;
+
 
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
 
     const skip = (page - 1) * limit;
 
-    const totalData = await userModel.countDocuments({
-      role: "EMPLOYEE",
-      isEmployee: false,
-    });
+    const totalData = await userModel.countDocuments(name ? {role: "EMPLOYEE", name: { $regex: name, $options: "i" }, isEmployee: false} :{ role: "EMPLOYEE", isEmployee: false });
     const getRequestedEmployee = await userModel
-      .find({ role: "EMPLOYEE", isEmployee: false })
+      .find(name ? {role: "EMPLOYEE", name: { $regex: name, $options: "i" }, isEmployee: false} :{ role: "EMPLOYEE", isEmployee: false })
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
@@ -707,15 +707,15 @@ const getSingleEmployee = async (req: Request, res: Response) => {
 const getAllEmployeeAttendance = async (req: Request, res: Response) => {
   try {
     const userRole = req.userRole;
-    if (userRole !== "ADMIN") {
-      return res.status(400).json(
-        myResponse({
-          statusCode: 400,
-          status: "failed",
-          message: "You are not authorized to access this route",
-        })
-      );
-    }
+    // if (userRole !== "ADMIN") {
+    //   return res.status(400).json(
+    //     myResponse({
+    //       statusCode: 400,
+    //       status: "failed",
+    //       message: "You are not authorized to access this route",
+    //     })
+    //   );
+    // }
 
     const date = req.query.date as string;
     console.log(date);
@@ -963,7 +963,12 @@ const recentServiceRequest = async (req: Request, res: Response) => {
         })
       );
     }
-    const getRecentAppointment = (await AppointmentModel.find().sort({createdAt: -1}).populate("user service")).splice(0,5);
+
+    const query = req.query.query as string;
+
+  
+
+    const getRecentAppointment = (await AppointmentModel.find(query ? {name: { $regex: query, $options: "i" }}:{}).sort({createdAt: -1}).populate("user service")).splice(0,5);
     if(getRecentAppointment.length === 0){
       return res.status(400).json(
         myResponse({
