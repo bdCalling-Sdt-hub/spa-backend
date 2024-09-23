@@ -12,6 +12,7 @@ import questionModel from "../services/model/question.model";
 import submitWorkModel from "./model/submitWork.model";
 import userModel from "../User/user.model";
 
+
 const calculateTotalWorkingHours = (
   attendance: Partial<IAttendance>
 ): number => {
@@ -105,7 +106,7 @@ const createAttendance = async (req: Request, res: Response) => {
       // Calculate the total working hours
       existingAttendance.totalWorkingHours =
         calculateTotalWorkingHours(existingAttendance);
-console.log(existingAttendance.totalWorkingHours);
+      console.log(existingAttendance.totalWorkingHours);
 
       await existingAttendance.save();
 
@@ -182,14 +183,16 @@ const getAssignAppointment = async (req: Request, res: Response) => {
       );
     }
 
-    const { searchDate=new Date().toISOString().split("T")[0], page = 1, limit = 10 } = req.query;
+    const {
+      searchDate = new Date().toISOString().split("T")[0],
+      page = 1,
+      limit = 10,
+    } = req.query;
 
     // Calculate skip value for pagination
     const pageNumber = parseInt(page as string, 10);
     const limitNumber = parseInt(limit as string, 10);
     const skip = (pageNumber - 1) * limitNumber;
-
-
 
     let pipeline: any[] = [
       // Step 1: Match employee assignments
@@ -294,11 +297,7 @@ const getAssignAppointment = async (req: Request, res: Response) => {
       }
     );
 
-
-    
     // const appointmentList = await employeeAssignModel.aggregate(pipeline);
-    
-
 
     const appointmentList = await employeeAssignModel.aggregate(pipeline);
 
@@ -626,6 +625,28 @@ const workSubmission = async (req: Request, res: Response) => {
     const { assignAppointmentId, inputField, checkBoxField, workNote } =
       req.body;
 
+  // Parse the inputField and checkBoxField if they are strings
+  let parsedInputField;
+  let parsedCheckBoxField;
+
+  try {
+    parsedInputField = typeof inputField === 'string' ? JSON.parse(inputField) : inputField;
+    parsedCheckBoxField = typeof checkBoxField === 'string' ? JSON.parse(checkBoxField) : checkBoxField;
+  } catch (error) {
+    return res.status(400).json(
+      myResponse({
+        statusCode: 400,
+        status: "failed",
+        message: "Invalid JSON format for inputField or checkBoxField",
+      })
+    );
+  }
+
+    // console.log("======>", typeof JSON.parse(inputField));
+    // console.log("======>", typeof JSON.parse(checkBoxField));
+
+    // console.log("000000000000000>",{ inputField:JSON.parse(inputField), checkBoxField:JSON.parse(checkBoxField)});
+
     if (!assignAppointmentId) {
       return res.status(400).json(
         myResponse({
@@ -654,10 +675,34 @@ const workSubmission = async (req: Request, res: Response) => {
         })
       );
     }
+    // let images = [];
+    // if (!req.files?.length || req.files?.length === 0) {
+    //   return res.status(400).json(
+    //     myResponse({
+    //       statusCode: 400,
+    //       status: "failed",
+    //       message: "images are required",
+    //     })
+    //   );
+    // }
+
+    // const files = req.files as Express.Multer.File[];
+
+    // for (const file of files) {
+    //   console.log(file);
+    //   images.push({
+    //     publicFileURL: `images/users/${file?.filename}`,
+    //     path: `public\\images\\users\\${file?.filename}`,
+    //   });
+    // }
+
+    console.log("getAssignAppointmentId", assignAppointmentId);
 
     const getStatusAssignedAppointment = await employeeAssignModel
       .findOne({ _id: assignAppointmentId, employeeId: req.userId })
       .populate("appointmentId");
+
+    console.log("getStatusAssignedAppointment: ", getStatusAssignedAppointment);
 
     if (!getStatusAssignedAppointment) {
       return res.status(400).json(
@@ -684,10 +729,58 @@ const workSubmission = async (req: Request, res: Response) => {
 
     const workSubmission = await submitWorkModel.create({
       assignAppointmentId,
-      inputField,
-      checkBoxField,
-      workNote,
+      inputField: inputField,
+      checkBoxField: checkBoxField,
+      workNote
     });
+
+    console.log("workSubmission: ", workSubmission);
+
+    const getAssignAppointment = await employeeAssignModel.findOne({
+      _id: workSubmission?.assignAppointmentId,
+      employeeId: req.userId,
+    });
+
+    console.log("getAssignAppointment: ", getAssignAppointment);
+
+    if (!getAssignAppointment) {
+      return res.status(400).json(
+        myResponse({
+          statusCode: 400,
+          status: "failed",
+          message: "getAssignAppointment not found",
+        })
+      );
+    }
+
+    const getAppointment = await appointmentModel.findOne({
+      _id: getAssignAppointment?.appointmentId,
+    });
+
+    console.log("getAppointment: ", getAppointment);
+
+    if (!getAppointment) {
+      return res.status(400).json(
+        myResponse({
+          statusCode: 400,
+          status: "failed",
+          message: "getAppointment not found",
+        })
+      );
+    }
+
+    getAppointment.appointmentStatus = "COMPLETED";
+    await getAppointment?.save();
+
+    if (!workSubmission) {
+      return res.status(400).json(
+        myResponse({
+          statusCode: 400,
+          status: "failed",
+          message: "workSubmission not found",
+        })
+      );
+    }
 
     // Further processing and saving the work submission can be done here.
 
@@ -701,7 +794,6 @@ const workSubmission = async (req: Request, res: Response) => {
     );
   } catch (error) {
     console.log("Error in workSubmission controller: ", error);
-
     return res.status(500).json(
       myResponse({
         statusCode: 500,
@@ -771,14 +863,6 @@ const workUploadPhoto = async (req: Request, res: Response) => {
       _id: workSubmission?.assignAppointmentId,
       employeeId: req.userId,
     });
-
-    // const notificationForEmployee = await notificationModel.create({
-    //   message: `${req.user.name} Checked in successfully`,
-    //   role: "USER",
-    //   recipientId: createCheckIn.user,
-    // });
-
-    // io.emit(`notification::${createCheckIn.user}`, notificationForEmployee);
 
     if (!getAssignAppointment) {
       return res.status(400).json(
@@ -876,8 +960,26 @@ const getWorkSubmission = async (req: Request, res: Response) => {
           {
             path: "managerId",
           },
+         
         ],
-      });
+      })
+      .populate({
+        path: "inputField",
+        populate: [
+          {
+            path: "questionId",
+          }
+        ],
+      },
+      
+    ).populate({
+      path: "checkBoxField",
+      populate: [
+        {
+          path: "questionId",
+        }
+      ]
+    });
 
     if (!workSubmission) {
       return res.status(400).json(
@@ -912,10 +1014,9 @@ const getWorkSubmission = async (req: Request, res: Response) => {
 const updateEmployeeProfile = async (req: Request, res: Response) => {
   try {
     const userRole = req.userRole;
-    console.log("============",req.userId);
-    console.log("============",req.userRole);
-    
-    
+    console.log("============", req.userId);
+    console.log("============", req.userRole);
+
     if (userRole !== "EMPLOYEE") {
       return res.status(401).json(
         myResponse({
@@ -926,7 +1027,7 @@ const updateEmployeeProfile = async (req: Request, res: Response) => {
       );
     }
     const { address } = req.body;
-    if(!address) {
+    if (!address) {
       return res.status(400).json(
         myResponse({
           statusCode: 400,
@@ -935,7 +1036,6 @@ const updateEmployeeProfile = async (req: Request, res: Response) => {
         })
       );
     }
-
 
     const userDetails = await userModel.findOne({ _id: req.userId });
 
@@ -951,15 +1051,15 @@ const updateEmployeeProfile = async (req: Request, res: Response) => {
 
     let image = {
       publicFileURL: "",
-      path:"",
-    }
+      path: "",
+    };
     let licenceFront = {
       publicFileURL: "",
-      path:"",
+      path: "",
     };
     let licenceBack = {
       publicFileURL: "",
-      path:"",
+      path: "",
     };
     if (!req.files) {
       return res.status(400).json(
@@ -971,7 +1071,6 @@ const updateEmployeeProfile = async (req: Request, res: Response) => {
       );
     }
 
-   
     const file: any = req.files;
     // for (const file of files) {
     //   console.log(file);
@@ -980,39 +1079,38 @@ const updateEmployeeProfile = async (req: Request, res: Response) => {
     //     path: `public\\images\\users\\${file?.filename}`,
     //   });
     // }
-    if(file.image) {
+    if (file.image) {
       image = {
         publicFileURL: `images/users/${file.image[0]?.filename}`,
         path: `public\\images\\users\\${file.image[0]?.filename}`,
-      } 
-      userDetails.image = image
-      await userDetails.save()
+      };
+      userDetails.image = image;
+      await userDetails.save();
     }
 
-    if(file.licenceFront) {
+    if (file.licenceFront) {
       licenceFront = {
         publicFileURL: `images/users/${file.licenceFront[0]?.filename}`,
         path: `public\\images\\users\\${file.licenceFront[0]?.filename}`,
-      }
-      userDetails.licenceFront = licenceFront
-      await userDetails.save()
+      };
+      userDetails.licenceFront = licenceFront;
+      await userDetails.save();
     }
 
-    if(file.licenceBack) {
+    if (file.licenceBack) {
       licenceBack = {
         publicFileURL: `images/users/${file.licenceBack[0]?.filename}`,
         path: `public\\images\\users\\${file.licenceBack[0]?.filename}`,
-      }
-      userDetails.licenceBack = licenceBack
-      await userDetails.save()
-    }
-    
-    if(address){
-      userDetails.address = address
-      await userDetails.save()
+      };
+      userDetails.licenceBack = licenceBack;
+      await userDetails.save();
     }
 
- 
+    if (address) {
+      userDetails.address = address;
+      await userDetails.save();
+    }
+
     res.status(200).json(
       myResponse({
         statusCode: 200,
@@ -1020,9 +1118,7 @@ const updateEmployeeProfile = async (req: Request, res: Response) => {
         message: "Profile updated successfully",
         data: userDetails,
       })
-    )
-
-   
+    );
   } catch (error) {
     console.log("Error in updateEmployeeProfile controller: ", error);
     return res.status(500).json(
@@ -1032,9 +1128,8 @@ const updateEmployeeProfile = async (req: Request, res: Response) => {
         message: "An error occurred while fetching work",
       })
     );
-    
   }
-}
+};
 
 export {
   createAttendance,
@@ -1046,5 +1141,5 @@ export {
   workSubmission,
   workUploadPhoto,
   getWorkSubmission,
-  updateEmployeeProfile
+  updateEmployeeProfile,
 };

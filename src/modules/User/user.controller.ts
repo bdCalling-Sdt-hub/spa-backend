@@ -10,6 +10,7 @@ import {
   verifyToken,
 } from "../../service/jwtService";
 import { comparePassword } from "../../service/hashPassword";
+import { on } from "winston-daily-rotate-file";
 
 const signUp = async (req: Request, res: Response) => {
   try {
@@ -90,12 +91,11 @@ const verifyCode = async (req: Request, res: Response) => {
         })
       );
     }
- 
 
     const isVerifiedUser = await verifyCodeService(user, code);
     console.log("isVerifiedUser: ", isVerifiedUser);
-    
-    if(isVerifiedUser) {
+
+    if (isVerifiedUser) {
       const accessToken = generateToken({
         email: user.email,
         id: user._id.toString(),
@@ -111,7 +111,7 @@ const verifyCode = async (req: Request, res: Response) => {
           token: accessToken,
         })
       );
-    }else{
+    } else {
       return res.status(400).json(
         myResponse({
           statusCode: 400,
@@ -120,9 +120,6 @@ const verifyCode = async (req: Request, res: Response) => {
         })
       );
     }
-
-
-
   } catch (error) {
     console.error("Error in verifyCode controller:", error);
     res.status(500).json(
@@ -163,9 +160,9 @@ const resendOtp = async (req: Request, res: Response) => {
     // Generate a new OTP
     const oneTimeCode =
       Math.floor(Math.random() * (999999 - 100000 + 1)) + 100000;
-      console.log("oneTimeCode: ", oneTimeCode);
-      
+    console.log("oneTimeCode: ", oneTimeCode);
 
+    console.log(oneTimeCode);
     if (user.oneTimeCode === null) {
       return res.status(400).json(
         myResponse({
@@ -351,9 +348,9 @@ const signIn = async (req: Request, res: Response) => {
         })
       );
     }
-console.log(user.password);
+    console.log(user.password);
 
-    if(user?.role === "EMPLOYEE" && !user?.isEmployee){
+    if (user?.role === "EMPLOYEE" && !user?.isEmployee) {
       return res.status(401).json(
         myResponse({
           statusCode: 401,
@@ -361,12 +358,10 @@ console.log(user.password);
           message: "You are not verified as employee",
         })
       );
-      
     }
 
     const isPasswordMatch = await comparePassword(password, user.password);
     console.log("isPasswordMatch: ", isPasswordMatch);
-    
 
     if (!isPasswordMatch) {
       return res.status(401).json(
@@ -386,7 +381,6 @@ console.log(user.password);
     });
 
     console.log("accessToken: ", accessToken);
-    
 
     if (!accessToken) {
       return res.status(500).json(
@@ -397,7 +391,7 @@ console.log(user.password);
         })
       );
     }
-    
+
     res.status(200).json(
       myResponse({
         statusCode: 200,
