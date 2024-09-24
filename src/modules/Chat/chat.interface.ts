@@ -3,7 +3,7 @@ import mongoose from "mongoose"
 interface IChat {
     participants: mongoose.Types.ObjectId[];
     lastMessage?:mongoose.Types.ObjectId;
-    unreadCount: number
+    unreadCount: number;
 }
 
 

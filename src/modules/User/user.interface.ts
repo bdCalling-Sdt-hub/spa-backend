@@ -28,6 +28,7 @@
   oneTimeCode?: number | null;
   createdAt?: Date;
   updatedAt?: Date;
+  status: "ACTIVE" | "INACTIVE" ;
 }
   
   export default IUser

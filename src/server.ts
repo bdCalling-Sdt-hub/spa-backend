@@ -12,6 +12,7 @@ let server: Server;
 let io: SocketIo;
 
 
+
 async function main() {
   try {
     await mongoose.connect(config.databaseURL as string);
@@ -26,6 +27,8 @@ async function main() {
         origin: "*",
       },
     });
+
+   
  (global as any).io = io;
 
  socketIo(io)
@@ -34,6 +37,8 @@ async function main() {
     console.log(error);
   }
 }
+
+
 
 main();
 

@@ -9,6 +9,7 @@ import notFound from './middlewares/notFound';
 import logger from './logger/logger';
 import morgan from 'morgan';
 import useragent from 'express-useragent';
+import { io } from './server';
 
 
 // Create an Express application
@@ -30,6 +31,9 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
   next();
 });
+
+
+
 
 // Custom interface to extend the Request object
 // interface CustomRequest extends Request {

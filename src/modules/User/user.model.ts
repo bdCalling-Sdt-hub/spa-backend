@@ -60,6 +60,11 @@ const userSchema: Schema<IUser> = new mongoose.Schema(
       },
       role: { type: String, required: false, enum: ["USER", "EMPLOYEE", "ADMIN", "MANAGER"], default: "ADMIN" },
       oneTimeCode: { type: Number, required: false, default: null },
+      status: {
+        type: String,
+        enum: ["ACTIVE", "INACTIVE"],
+        default: "INACTIVE",
+      }
     },
     {
       toJSON: {

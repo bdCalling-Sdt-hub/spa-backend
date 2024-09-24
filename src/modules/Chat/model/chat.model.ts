@@ -17,7 +17,8 @@ const chatSchema = new mongoose.Schema({
     unreadCount: {
         type: Number,
         default: 0
-    }   
+    },
+    
 }, {
     timestamps: true
 })
