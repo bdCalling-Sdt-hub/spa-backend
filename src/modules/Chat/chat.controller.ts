@@ -132,7 +132,7 @@ const getAllChatForUser = async (req: Request, res: Response) => {
         {
           path: "lastMessage",
         }
-      ]);
+      ]).sort({updatedAt: -1 });
       if(!chats) {
         return res.status(404).json(
           myResponse({
