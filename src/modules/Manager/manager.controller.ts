@@ -588,7 +588,15 @@ const getUnableServiceRequest = async (req: Request, res: Response) => {
           },
           {
             path: "appointmentId",
+            populate: [
+              {
+                path: "service",
+              }
+            ]
           },
+          {
+            path: "userId",
+          }
         ],
       });
 
