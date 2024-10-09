@@ -146,6 +146,8 @@ const resendOtp = async (req: Request, res: Response) => {
     }
 
     const user = await userModel.findOne({ email });
+    console.log("user: ", user);
+    
 
     if (!user) {
       return res.status(400).json(
@@ -161,8 +163,8 @@ const resendOtp = async (req: Request, res: Response) => {
     const oneTimeCode =
       Math.floor(Math.random() * (999999 - 100000 + 1)) + 100000;
     console.log("oneTimeCode: ", oneTimeCode);
-
     console.log(oneTimeCode);
+    
     if (user.oneTimeCode === null) {
       return res.status(400).json(
         myResponse({
@@ -178,6 +180,8 @@ const resendOtp = async (req: Request, res: Response) => {
     await user.save();
 
     await sentOtpByEmail(email, oneTimeCode);
+    console.log("OTP sent successfully");
+    
 
     res.status(200).json(
       myResponse({

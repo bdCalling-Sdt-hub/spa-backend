@@ -39,6 +39,7 @@ const createService = async (req: Request, res: Response) => {
       name,
       description,
       image,
+      type: "OTHERS",
     });
 
     res.status(200).json(
@@ -71,7 +72,7 @@ const getService = async (req: Request, res: Response) => {
         })
       );
     }
-    const service = await serviceModel.find();
+    const service = await serviceModel.find({isDelete: false});
     if (!service) {
       return res.status(404).json(
         myResponse({
@@ -170,6 +171,66 @@ const updateService = async (req: Request, res: Response) => {
     );
   } catch (error) {
     console.log("Error in updateService controller: ", error);
+    res.status(500).json(
+      myResponse({
+        statusCode: 500,
+        status: "failed",
+        message: "Internal Server Error",
+      })
+    );
+  }
+};
+
+const deleteService = async (req: Request, res: Response) => {
+  try {
+    const user = req.userRole;
+    if (user !== "ADMIN") {
+      return res.status(401).json(
+        myResponse({
+          statusCode: 401,
+          status: "failed",
+          message: "You are not authorized to perform this action",
+        })
+      );
+    }
+    const { id } = req.body;
+    console.log(id);
+    if (!id) {
+      return res.status(404).json(
+        myResponse({
+          statusCode: 404,
+          status: "failed",
+          message: "Service Id not found",
+        })
+      );
+    }
+
+    const service = await serviceModel.findById(id);
+    console.log(service);
+
+    if (!service) {
+      return res.status(404).json(
+        myResponse({
+          statusCode: 404,
+          status: "failed",
+          message: "Service not found",
+        })
+      );
+    }
+    console.log(service);
+    service.isDelete = true;
+    await service.save();
+
+    res.status(200).json(
+      myResponse({
+        statusCode: 200,
+        status: "success",
+        message: "Service deleted successfully",
+        data: service,
+      })
+    );
+  } catch (error) {
+    console.log("Error in deleteService controller: ", error);
     res.status(500).json(
       myResponse({
         statusCode: 500,
@@ -558,4 +619,5 @@ export {
   employeeSubmitFormService,
   updateEmployeeSubmitFormService,
   getEmployeeSubmitFormService,
+  deleteService,
 };

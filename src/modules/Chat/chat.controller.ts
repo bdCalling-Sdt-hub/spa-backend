@@ -58,6 +58,7 @@ const createChatList = async (req: Request, res: Response) => {
           statusCode: 409,
           status: "failed",
           message: "Chat already exists",
+          data: existingChat,
         })
       );
     }

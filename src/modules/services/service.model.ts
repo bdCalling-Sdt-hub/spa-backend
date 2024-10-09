@@ -26,7 +26,11 @@ const serviceSchema:Schema<IService> = new mongoose.Schema({
     type:{
         type: String,
         required: true,
-        enum: ["POOL_CLEANING", "POOL_REMODELING", "SPA_SERVICE"]
+        enum: ["POOL_CLEANING", "POOL_REMODELING", "SPA_SERVICE","OTHERS"]
+    },
+    isDelete: {
+        type: Boolean,
+        default: false
     }
 },
 

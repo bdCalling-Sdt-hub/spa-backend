@@ -8,6 +8,7 @@ import submitWorkModel from "../Employee/model/submitWork.model";
 import { io } from "../../server";
 import notificationModel from "../Manager/Model/notification.model";
 import userModel from "../User/user.model";
+import { populate } from "dotenv";
 
 const createAppointment = async (req: Request, res: Response) => {
   try {
@@ -387,6 +388,7 @@ const getWorkSubmissionByUser = async (req: Request, res: Response) => {
             path: "employeeId",
            
           },
+          
           {
             path: "appointmentId",
             populate: [
@@ -401,7 +403,20 @@ const getWorkSubmissionByUser = async (req: Request, res: Response) => {
             path: "managerId",
           },
         ],
-      });
+      },
+     
+      
+    
+    ).populate({
+      path: "inputField.questionId",
+      select: "question", // Populate questionId in inputField
+      // Select only relevant fields
+    })
+    .populate({
+      path: "checkBoxField.questionId",
+      select: "question",  // Populate questionId in checkBoxField
+       // Select only relevant fields
+    })
 
     if (!workSubmission) {
       return res.status(400).json(

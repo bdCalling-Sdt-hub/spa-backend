@@ -20,6 +20,7 @@ const serviceData = [
       path: "public/images/services/pool.png",
     },
     type: "POOL_CLEANING",
+    isDelete: false,
   },
   {
     name: "Pool Remodeling",
@@ -30,6 +31,7 @@ const serviceData = [
       path: "public/images/services/pool.png",
     },
     type: "POOL_REMODELING",
+    isDelete: false,
   },
   {
     name: "Spa Service",
@@ -40,6 +42,7 @@ const serviceData = [
       path: "public/images/services/pool.png",
     },
     type: "SPA_SERVICE",
+    isDelete: false,
   },
 ];
 

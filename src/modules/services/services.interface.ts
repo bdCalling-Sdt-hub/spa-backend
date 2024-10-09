@@ -8,6 +8,7 @@ interface IService {
         path: string;
     };
     type: string;
+    isDelete: boolean;
 }
 
 
