@@ -58,6 +58,7 @@ const emailWithNodeMailer = async ({
  */
 
 export function sentOtpByEmail(email: string, oneTimeCode:number): Promise<void> {
+  console.log("sentOtpByEmail: ", email, oneTimeCode);
     const subject = "Your One Time Password (OTP) for Verifying your Email";
     const html = `
         <body style="background-color: #f3f4f6; padding: 1rem; font-family: Arial, sans-serif;">

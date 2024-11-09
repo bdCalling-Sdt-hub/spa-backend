@@ -147,7 +147,6 @@ const resendOtp = async (req: Request, res: Response) => {
 
     const user = await userModel.findOne({ email });
     console.log("user: ", user);
-    
 
     if (!user) {
       return res.status(400).json(
@@ -159,12 +158,25 @@ const resendOtp = async (req: Request, res: Response) => {
       );
     }
 
+    const currentTime = new Date().getTime();
+    const oneMinute = 60 * 1000;
+
+    if (user.updatedAt && currentTime - user.updatedAt.getTime() < oneMinute) {
+      return res.status(400).json(
+        myResponse({
+          statusCode: 400,
+          status: "failed",
+          message: "Please wait at least 1 minute before requesting a new OTP",
+        })
+      );
+    }
+
     // Generate a new OTP
     const oneTimeCode =
       Math.floor(Math.random() * (999999 - 100000 + 1)) + 100000;
     console.log("oneTimeCode: ", oneTimeCode);
     console.log(oneTimeCode);
-    
+
     if (user.oneTimeCode === null) {
       return res.status(400).json(
         myResponse({
@@ -181,7 +193,6 @@ const resendOtp = async (req: Request, res: Response) => {
 
     await sentOtpByEmail(email, oneTimeCode);
     console.log("OTP sent successfully");
-    
 
     res.status(200).json(
       myResponse({
