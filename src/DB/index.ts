@@ -8,6 +8,7 @@ const admin = {
   password: "1qazxsw2",
   role: "ADMIN",
   isDeleted: false,
+  isVerified: true,
 };
 
 const serviceData = [
