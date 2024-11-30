@@ -48,24 +48,27 @@ const serviceData = [
 ];
 
 const seedSuperAdmin = async () => {
-  const isSuperAdminExists = await userModel.findOne({ email: admin.email });
-  
-  if (!isSuperAdminExists) {
-    console.log("Super Admin created");
-    await userModel.create(admin);
-  }
- 
-  for (let i = 0; i < serviceData.length; i++) {
-    const service = serviceData[i];
-    // console.log("service: ", service);
-    
-    const isServiceExists = await serviceModel.findOne({ type: service.type });
-    if (!isServiceExists) {
-      console.log("service: ");
-      
-      await serviceModel.create(service);
+  try {
+    const isSuperAdminExists = await userModel.findOne({ email: admin.email });
+
+    if (!isSuperAdminExists) {
+      console.log("Super Admin created");
+      await userModel.create(admin);
     }
+
+    for (let i = 0; i < serviceData.length; i++) {
+      const service = serviceData[i];
+
+      const isServiceExists = await serviceModel.findOne({ type: service.type });
+      if (!isServiceExists) {
+        console.log("service: ");
+        await serviceModel.create(service);
+      }
+    }
+  } catch (error) {
+    console.error("Error during seeding:", error);
   }
 };
+
 
 export default seedSuperAdmin;
