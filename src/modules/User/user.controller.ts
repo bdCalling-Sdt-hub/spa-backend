@@ -364,16 +364,28 @@ const signIn = async (req: Request, res: Response) => {
       );
     }
     console.log(user.password);
+    if(!user?.isProfileCompleted && user?.role === "EMPLOYEE" && !user?.isEmployee){ 
+      return res.status(401).json(
+        myResponse({
+          statusCode: 401,
+          status: "failed",
+          message: "Please complete your profile",
+        })
+      );
+    }
 
     if (user?.role === "EMPLOYEE" && !user?.isEmployee) {
       return res.status(401).json(
         myResponse({
           statusCode: 401,
           status: "failed",
-          message: "You are not verified as employee",
+          message: "Your account is currently being verified by the admin. Thank you for your patience!",
         })
       );
     }
+
+  
+
 
     const isPasswordMatch = await comparePassword(password, user.password);
     console.log("isPasswordMatch: ", isPasswordMatch);
