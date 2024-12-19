@@ -1094,6 +1094,7 @@ const updateEmployeeProfile = async (req: Request, res: Response) => {
         path: `public\\images\\users\\${file.licenceFront[0]?.filename}`,
       };
       userDetails.licenceFront = licenceFront;
+      userDetails.isProfileCompleted = true;
       await userDetails.save();
     }
 
@@ -1103,13 +1104,17 @@ const updateEmployeeProfile = async (req: Request, res: Response) => {
         path: `public\\images\\users\\${file.licenceBack[0]?.filename}`,
       };
       userDetails.licenceBack = licenceBack;
+      userDetails.isProfileCompleted = true;
       await userDetails.save();
     }
 
     if (address) {
       userDetails.address = address;
+      userDetails.isProfileCompleted = true;
       await userDetails.save();
     }
+
+
 
     res.status(200).json(
       myResponse({
