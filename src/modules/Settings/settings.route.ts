@@ -1,6 +1,6 @@
 import { Router } from "express";
 import isValidate from "../../middlewares/auth";
-import { addAboutUs, addPrivacyPolicy, addTermsCondition, changePassword, getAboutUs, getLoginUser, getPrivacyPolicy, getTermsCondition } from "./settings.controller";
+import { addAboutUs, addPrivacyPolicy, addTermsCondition, changePassword, getAboutUs, getLoginUser, getPrivacyPolicy, getTermsCondition, htmlRoute } from "./settings.controller";
 // import upload from "../../middlewares/fileUploadNormal";
 
 
@@ -8,6 +8,7 @@ import { addAboutUs, addPrivacyPolicy, addTermsCondition, changePassword, getAbo
 
 const router = Router();
 router.get('/privacy-policy',getPrivacyPolicy);
+router.get('/privacy-policy-page',htmlRoute)
 router.get('/terms-condition',getTermsCondition);
 router.get('/about-us',getAboutUs);
 router.get('/get-login-user',isValidate,getLoginUser);

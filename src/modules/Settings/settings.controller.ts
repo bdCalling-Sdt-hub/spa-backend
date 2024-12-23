@@ -6,6 +6,7 @@ import privacyAndPolicyModel from "./model/privacyAndPolicy.model";
 import termsAndConditionModel from "./model/termsAndCondition.model";
 import aboutUsModel from "./model/aboutUs.model";
 
+
 const changePassword = async (req: Request, res: Response) => {
     try {
         const user = req.user;
@@ -403,7 +404,69 @@ const getLoginUser = async (req: Request, res: Response) => {
     }
 }
 
+const htmlRoute = async (req: Request, res: Response) => {
+    try {
+        const privacy: any = await privacyAndPolicyModel.findOne({});
+        console.log(privacy);
+        
+         if (!privacy) {
+             return res.status(404).json(myResponse({
+                 message: "privacy not found",
+                 statusCode: 404,
+                 status: "failed"
+             }));
+         }
+        // console.log("aiman", privacy?.content);
+        res.header("Content-Type", "text/html");
+        res.send(`<!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title></title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                line-height: 1.6;
+                margin: 0;
+                padding: 0;
+                background-color: #f4f4f4;
+                color: #333;
+            }
+            .container {
+                max-width: 800px;
+                margin: 30px auto;
+                padding: 20px;
+                background: #fff;
+                border-radius: 8px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+            h1{
+                color: #444;
+            }
+            footer {
+                text-align: center;
+                margin-top: 30px;
+                font-size: 0.9em;
+                color: #666;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>${"Privacy Policy"}</h1>
+            ${privacy?.content}
+        </div>
+    </body>
+    </html>`);
+      } catch (error) {
+        res
+          .status(500)
+          .json(myResponse ({ message: "Internal server error", statusCode: 500 }));
+      }
+}
+
 
   
 
- export {changePassword, addTermsCondition, getTermsCondition, addAboutUs, getAboutUs,getPrivacyPolicy, addPrivacyPolicy,getLoginUser}   
+ export {changePassword,htmlRoute, addTermsCondition, getTermsCondition, addAboutUs, getAboutUs,getPrivacyPolicy, addPrivacyPolicy,getLoginUser}   
