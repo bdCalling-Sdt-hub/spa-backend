@@ -1,5 +1,7 @@
 import { Router } from "express";
-import { forgotPassword, resendOtp, setPassword, signIn, signUp, verifyCode } from "./user.controller";
+import { deleteUser, forgotPassword, resendOtp, setPassword, signIn, signUp, verifyCode } from "./user.controller";
+import isValidate from "../../middlewares/auth";
+
 
 
 const router = Router();
@@ -9,7 +11,8 @@ router.post('/verify-code',verifyCode)
 router.post('/resend-otp',resendOtp)
 router.post('/forgot-password',forgotPassword)
 router.post('/set-password',setPassword)
-router.post('/sign-in',signIn)
+router.post('/sign-in',signIn);
+router.delete('/delete',isValidate,deleteUser);
 
 
 // router.post(

@@ -11,6 +11,7 @@ import {
 } from "../../service/jwtService";
 import { comparePassword } from "../../service/hashPassword";
 import { on } from "winston-daily-rotate-file";
+import IUser from "./user.interface";
 
 const signUp = async (req: Request, res: Response) => {
   try {
@@ -34,6 +35,39 @@ const signUp = async (req: Request, res: Response) => {
 
     const user = await userModel.findOne({ email });
 
+    if(user?.isDeleted){
+      const oneTimeCode =
+      Math.floor(Math.random() * (999999 - 100000 + 1)) + 100000;
+      const user = await userModel.findOneAndUpdate({ email }, { isDeleted: false, oneTimeCode }, { new: true });
+     
+
+
+       user && sentOtpByEmail(user?.email, oneTimeCode);
+
+       setTimeout(async () => {
+        try {
+          if (user?.oneTimeCode) user.oneTimeCode = null;
+          if (user) {
+            await user.save();
+          }
+          console.log("one Time Code reset to null after 3 minutes");
+        } catch (error) {
+          console.error("Error updating oneTimeCode:", error);
+        }
+      }, 180000);
+  
+
+
+      return res.status(400).json(
+        myResponse({
+          statusCode: 200,
+          status: "success",
+          message: "A verification email is sent to your email",
+          data: user,
+        })
+      );
+    }
+
     if (user) {
       return res.status(400).json(
         myResponse({
@@ -43,6 +77,7 @@ const signUp = async (req: Request, res: Response) => {
         })
       );
     }
+
     const userCreate = await userRegister({ name, email, password, role });
 
     console.log(userCreate);
@@ -363,6 +398,17 @@ const signIn = async (req: Request, res: Response) => {
         })
       );
     }
+
+    if(user.isDeleted){
+      return res.status(401).json(
+        myResponse({
+          statusCode: 401,
+          status: "failed",
+          message: "Your account has been deleted",
+        })
+      );
+    }
+
     console.log(user.password);
     if(!user?.isProfileCompleted && user?.role === "EMPLOYEE" && !user?.isEmployee){ 
       return res.status(401).json(
@@ -440,4 +486,38 @@ const signIn = async (req: Request, res: Response) => {
   }
 };
 
-export { signUp, verifyCode, resendOtp, forgotPassword, setPassword, signIn };
+const deleteUser = async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId;
+    const user = await userModel.findOne({ _id: userId });
+    if (!user) {
+      return res.status(404).json(
+        myResponse({
+          statusCode: 404,
+          status: "failed",
+          message: "User not found",
+        })
+      );
+    } 
+    user.isDeleted = true;
+    await user.save();
+    res.status(200).json(
+      myResponse({
+        statusCode: 200,
+        status: "success",
+        message: "User deleted successfully",
+      })
+    );
+  } catch (error) {
+    console.error("Error in deleteUser controller:", error);
+    res.status(500).json(
+      myResponse({
+        statusCode: 500,
+        status: "failed",
+        message: "Internal Server Error",
+      })
+    );
+  }
+}
+
+export { signUp, verifyCode, resendOtp, forgotPassword, setPassword, signIn,deleteUser };
