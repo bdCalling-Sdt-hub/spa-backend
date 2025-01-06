@@ -12,7 +12,7 @@ router.post('/resend-otp',resendOtp)
 router.post('/forgot-password',forgotPassword)
 router.post('/set-password',setPassword)
 router.post('/sign-in',signIn);
-router.delete('/delete',isValidate,deleteUser);
+router.post('/delete',isValidate,deleteUser);
 
 
 // router.post(

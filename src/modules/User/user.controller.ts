@@ -490,6 +490,17 @@ const deleteUser = async (req: Request, res: Response) => {
   try {
     const userId = req.userId;
     const user = await userModel.findOne({ _id: userId });
+    const { password } = req.body;
+
+    if (!password) {
+      return res.status(400).json(
+        myResponse({
+          statusCode: 400,
+          status: "failed",
+          message: "Password is required",
+        })
+      );
+    }
     if (!user) {
       return res.status(404).json(
         myResponse({
@@ -498,7 +509,18 @@ const deleteUser = async (req: Request, res: Response) => {
           message: "User not found",
         })
       );
-    } 
+    }
+    const isPasswordMatch = await comparePassword(password, user.password);
+    if (!isPasswordMatch) {
+      return res.status(401).json(
+        myResponse({
+          statusCode: 401,
+          status: "failed",
+          message: "Incorrect password",
+        })
+      );
+    }
+    
     user.isDeleted = true;
     await user.save();
     res.status(200).json(
