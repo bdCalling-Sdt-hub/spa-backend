@@ -1,4 +1,4 @@
-import { populate } from 'dotenv';
+import { populate } from "dotenv";
 import { Request, Response } from "express";
 import myResponse from "../../utils/Response";
 import userModel from "../User/user.model";
@@ -43,7 +43,7 @@ const createManager = async (req: Request, res: Response) => {
         })
       );
     }
-      
+
     const user = await userModel.create({
       name,
       email,
@@ -53,8 +53,8 @@ const createManager = async (req: Request, res: Response) => {
       isVerified: true,
     });
 
+    console.log("ahad============", user);
 
-    
     return res.status(200).json(
       myResponse({
         statusCode: 200,
@@ -98,9 +98,7 @@ const getCustomers = async (req: Request, res: Response) => {
 
     const userId = req.query.id as string;
     console.log("userId: ", userId);
-    
 
-    
     // Build the query object for filtering
     const query: any = { role: "USER" };
 
@@ -108,13 +106,17 @@ const getCustomers = async (req: Request, res: Response) => {
       query.$or = [
         { name: { $regex: new RegExp(search, "i") } },
         { email: { $regex: new RegExp(search, "i") } },
-     
       ];
     }
 
     // Fetch total customer count and customers for the current page
-    const totalData = await userModel.countDocuments(mongoose.Types.ObjectId.isValid(userId) ? { _id: userId } : query);
-    const customers = await userModel.find(mongoose.Types.ObjectId.isValid(userId) ? { _id: userId } : query).skip(skip).limit(limit);
+    const totalData = await userModel.countDocuments(
+      mongoose.Types.ObjectId.isValid(userId) ? { _id: userId } : query
+    );
+    const customers = await userModel
+      .find(mongoose.Types.ObjectId.isValid(userId) ? { _id: userId } : query)
+      .skip(skip)
+      .limit(limit);
 
     if (!customers || customers.length === 0) {
       return res.status(404).json(
@@ -337,9 +339,6 @@ const getSingleEmployee = async (req: Request, res: Response) => {
   }
 };
 
-
-
-
 const getService = async (req: Request, res: Response) => {
   try {
     const user = req.user;
@@ -450,8 +449,7 @@ const getAppointmentRequest = async (req: Request, res: Response) => {
   }
 };
 
-
-const updateAppointmentRequestDate = async (req: Request, res: Response)=>{
+const updateAppointmentRequestDate = async (req: Request, res: Response) => {
   try {
     const user = req.userRole;
     if (user !== "MANAGER") {
@@ -464,12 +462,12 @@ const updateAppointmentRequestDate = async (req: Request, res: Response)=>{
       );
     }
 
-    const { id, appointmentDate} = req.body;
+    const { id, appointmentDate } = req.body;
     // const totalData = await AppointmentModel.countDocuments({ service: id });
     const getAppointmentRequest = await AppointmentModel.findById({
       _id: id,
-    })
-    if(!getAppointmentRequest){
+    });
+    if (!getAppointmentRequest) {
       return res.status(404).json(
         myResponse({
           statusCode: 404,
@@ -478,11 +476,10 @@ const updateAppointmentRequestDate = async (req: Request, res: Response)=>{
         })
       );
     }
-            
-      getAppointmentRequest.appointmentDate = appointmentDate;
-      getAppointmentRequest.save();
 
-   
+    getAppointmentRequest.appointmentDate = appointmentDate;
+    getAppointmentRequest.save();
+
     return res.status(200).json(
       myResponse({
         statusCode: 200,
@@ -501,7 +498,7 @@ const updateAppointmentRequestDate = async (req: Request, res: Response)=>{
       })
     );
   }
-}
+};
 
 const assignEmployee = async (req: Request, res: Response) => {
   try {
@@ -517,8 +514,8 @@ const assignEmployee = async (req: Request, res: Response) => {
       );
     }
 
-    const { employeeId, appointmentId,userId } = req.body;
-    if (!employeeId || !appointmentId ||!userId) {
+    const { employeeId, appointmentId, userId } = req.body;
+    if (!employeeId || !appointmentId || !userId) {
       return res.status(400).json(
         myResponse({
           statusCode: 400,
@@ -529,7 +526,7 @@ const assignEmployee = async (req: Request, res: Response) => {
     }
 
     const getAppointment = await AppointmentModel.findById(appointmentId);
-    if(!getAppointment) {
+    if (!getAppointment) {
       return res.status(400).json(
         myResponse({
           statusCode: 400,
@@ -538,22 +535,21 @@ const assignEmployee = async (req: Request, res: Response) => {
         })
       );
     }
-  if(getAppointment.appointmentStatus as string !== "PENDING") {
-    return res.status(400).json(
-      myResponse({
-        statusCode: 400,
-        status: "failed",
-        message: "Appointment is not pending",
-      })
-    ); 
-  }
-
+    if ((getAppointment.appointmentStatus as string) !== "PENDING") {
+      return res.status(400).json(
+        myResponse({
+          statusCode: 400,
+          status: "failed",
+          message: "Appointment is not pending",
+        })
+      );
+    }
 
     const assignEmployee = await assignEmployeeModel.create({
       managerId: managerId,
       employeeId,
       appointmentId,
-      userId
+      userId,
     });
 
     if (!assignEmployee) {
@@ -567,13 +563,13 @@ const assignEmployee = async (req: Request, res: Response) => {
     }
 
     const updateAppointmentStatus = await AppointmentModel.findByIdAndUpdate(
-      {_id:appointmentId},
-      { 
-        appointmentStatus: "ASSIGNED" },
+      { _id: appointmentId },
+      {
+        appointmentStatus: "ASSIGNED",
+      },
       { new: true }
     );
     console.log(updateAppointmentStatus);
-    
 
     if (!updateAppointmentStatus) {
       return res.status(400).json(
@@ -661,17 +657,15 @@ const getUnableServiceRequest = async (req: Request, res: Response) => {
             populate: [
               {
                 path: "service",
-
-
               },
               {
                 path: "user",
-              }
-            ]
+              },
+            ],
           },
           {
             path: "userId",
-          }
+          },
         ],
       });
 
@@ -1059,7 +1053,6 @@ const managerCalendar = async (req: Request, res: Response) => {
     //   },
     // ];
 
-
     const pipeline = [
       {
         $match: { managerId: req.userId },
@@ -1126,7 +1119,7 @@ const managerCalendar = async (req: Request, res: Response) => {
           appointmentId: {
             $mergeObjects: [
               "$appointmentInfo",
-              { user: "$appointmentUser", service: "$appointmentService" }
+              { user: "$appointmentUser", service: "$appointmentService" },
             ],
           },
           isDelete: 1,
@@ -1161,7 +1154,6 @@ const managerCalendar = async (req: Request, res: Response) => {
         $limit: limit,
       },
     ];
-    
 
     const getAppointmentRequest = await assignEmployeeModel.aggregate(pipeline);
 
@@ -1348,10 +1340,9 @@ const assignAppointmentList = async (req: Request, res: Response) => {
           path: "user service",
           select: "-password -otherSensitiveFields", // Exclude unnecessary fields
         },
-      }
-    )
+      })
       .populate("employeeId")
-      .populate("managerId"); 
+      .populate("managerId");
 
     if (!getAssignAppointment || getAssignAppointment.length === 0) {
       return res.status(404).json(
@@ -1427,7 +1418,7 @@ const changeServiceTech = async (req: Request, res: Response) => {
 
     const { assignAppointmentId, employeeId } = req.body;
     console.log(assignAppointmentId, employeeId);
-    
+
     if (
       !mongoose.Types.ObjectId.isValid(assignAppointmentId as string) ||
       !mongoose.Types.ObjectId.isValid(employeeId as string)
@@ -1470,7 +1461,7 @@ const changeServiceTech = async (req: Request, res: Response) => {
       });
 
       io.emit(`notification::${employeeId}`, notificationForEmployee);
-    }else{
+    } else {
       return res.status(400).json(
         myResponse({
           statusCode: 400,
@@ -1479,8 +1470,6 @@ const changeServiceTech = async (req: Request, res: Response) => {
         })
       );
     }
-
-    
   } catch (error) {
     console.log("Error in changeServiceTech controller: ", error);
     res.status(500).json(
@@ -1507,5 +1496,5 @@ export {
   managerCalendar,
   assignAppointmentList,
   changeServiceTech,
-  updateAppointmentRequestDate
+  updateAppointmentRequestDate,
 };
