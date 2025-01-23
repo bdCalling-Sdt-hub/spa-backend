@@ -53,6 +53,8 @@ const createManager = async (req: Request, res: Response) => {
       isVerified: true,
     });
 
+
+    
     return res.status(200).json(
       myResponse({
         statusCode: 200,

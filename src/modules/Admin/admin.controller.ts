@@ -88,18 +88,33 @@ const getAllEmployeeRequest = async (req: Request, res: Response) => {
         })
       );
     }
-    
-    const name = req.query.name as string;
 
+    const name = req.query.name as string;
 
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
 
     const skip = (page - 1) * limit;
 
-    const totalData = await userModel.countDocuments(name ? {role: "EMPLOYEE", name: { $regex: name, $options: "i" }, isEmployee: false} :{ role: "EMPLOYEE", isEmployee: false });
+    const totalData = await userModel.countDocuments(
+      name
+        ? {
+            role: "EMPLOYEE",
+            name: { $regex: name, $options: "i" },
+            isEmployee: false,
+          }
+        : { role: "EMPLOYEE", isEmployee: false }
+    );
     const getRequestedEmployee = await userModel
-      .find(name ? {role: "EMPLOYEE", name: { $regex: name, $options: "i" }, isEmployee: false} :{ role: "EMPLOYEE", isEmployee: false })
+      .find(
+        name
+          ? {
+              role: "EMPLOYEE",
+              name: { $regex: name, $options: "i" },
+              isEmployee: false,
+            }
+          : { role: "EMPLOYEE", isEmployee: false }
+      )
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
@@ -174,8 +189,7 @@ const acceptOrRejectRequest = async (req: Request, res: Response) => {
         })
       );
     }
-    console.log(status,id);
-    
+    console.log(status, id);
 
     if (status === "accept") {
       const updateStatus = await userModel.findOne({
@@ -221,8 +235,8 @@ const acceptOrRejectRequest = async (req: Request, res: Response) => {
         myResponse({
           statusCode: 200,
           status: "success",
-          message: "Employee status  successfully",    
-        })  
+          message: "Employee status  successfully",
+        })
       );
     }
   } catch (error) {
@@ -253,18 +267,21 @@ const getAllManager = async (req: Request, res: Response) => {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
     const search = req.query.search as string;
+    console.log("======", search === "");
 
     const skip = (page - 1) * limit;
     const totalData = await userModel.countDocuments(
-      search
-        ? { role: "MANAGER", name: { $regex: search, $options: "i" } }
-        : { role: "MANAGER" }
+      // search == ""
+        // ? { role: "MANAGER" }
+        // : search
+          // ? { role: "MANAGER", name: { $regex: search, $options: "i" } }
+           { role: "MANAGER" }
     );
     const getManager = await userModel
       .find(
-        search
-          ? { role: "MANAGER", name: { $regex: search, $options: "i" } }
-          : { role: "MANAGER" }
+        // search == "" ? { role: "MANAGER" } : search
+          // ? { role: "MANAGER", name: { $regex: search, $options: "i" } }
+           { role: "MANAGER" }
       )
       .skip(skip)
       .limit(limit);
@@ -272,7 +289,7 @@ const getAllManager = async (req: Request, res: Response) => {
       return res.status(400).json(
         myResponse({
           statusCode: 400,
-          status: "failed",
+          status: "Failed",
           message: "No Manager found",
         })
       );
@@ -544,13 +561,21 @@ const getAllUser = async (req: Request, res: Response) => {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
     console.log("page: ", page, "limit: ", limit);
-    
+
     const name = req.query.name as string;
     // const date = req.query.date as string;
     const skip = (page - 1) * limit;
-    const totalData = await userModel.countDocuments(name ? { role: "USER", name: { $regex: name, $options: "i" } }: { role: "USER" });
+    const totalData = await userModel.countDocuments(
+      name
+        ? { role: "USER", name: { $regex: name, $options: "i" } }
+        : { role: "USER" }
+    );
     const getUser = await userModel
-      .find(name ? { role: "USER", name: { $regex: name, $options: "i" } }: { role: "USER" })
+      .find(
+        name
+          ? { role: "USER", name: { $regex: name, $options: "i" } }
+          : { role: "USER" }
+      )
       .skip(skip)
       .limit(limit);
     if (getUser.length === 0) {
@@ -606,11 +631,27 @@ const getAllEmployee = async (req: Request, res: Response) => {
     const limit = parseInt(req.query.limit as string) || 10;
     const name = req.query.name as string;
     console.log(name);
-    
+
     const skip = (page - 1) * limit;
-    const totalData = await userModel.countDocuments(name ? { role: "EMPLOYEE", name: { $regex: name, $options: "i" }, isEmployee: true} :{ role: "EMPLOYEE", isEmployee: true });
+    const totalData = await userModel.countDocuments(
+      name
+        ? {
+            role: "EMPLOYEE",
+            name: { $regex: name, $options: "i" },
+            isEmployee: true,
+          }
+        : { role: "EMPLOYEE", isEmployee: true }
+    );
     const getManager = await userModel
-      .find(name ? { role: "EMPLOYEE", name: { $regex: name, $options: "i" }, isEmployee: true} :{ role: "EMPLOYEE", isEmployee: true })
+      .find(
+        name
+          ? {
+              role: "EMPLOYEE",
+              name: { $regex: name, $options: "i" },
+              isEmployee: true,
+            }
+          : { role: "EMPLOYEE", isEmployee: true }
+      )
       .skip(skip)
       .limit(limit);
     if (getManager.length === 0) {
@@ -719,11 +760,11 @@ const getAllEmployeeAttendance = async (req: Request, res: Response) => {
 
     const date = req.query.date as string;
     console.log(date);
-    
+
     console.log(new Date(date as string));
     const id = req.query.id as string;
 
-    if(!mongoose.Types.ObjectId.isValid(id)) {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json(
         myResponse({
           statusCode: 400,
@@ -733,11 +774,12 @@ const getAllEmployeeAttendance = async (req: Request, res: Response) => {
       );
     }
 
-
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
     const skip = (page - 1) * limit;
-    const totalData = await attendanceModel.countDocuments(date ? { date: new Date(date), userId: id } : { userId: id })
+    const totalData = await attendanceModel.countDocuments(
+      date ? { date: new Date(date), userId: id } : { userId: id }
+    );
     const getAttendance = await attendanceModel
       .find(date ? { date: new Date(date), userId: id } : { userId: id })
       .populate({
@@ -791,7 +833,6 @@ const completeWorkGraph = async (req: Request, res: Response) => {
           statusCode: 400,
           status: "failed",
           message: "You are not authorized to access this route",
-           
         })
       );
     }
@@ -803,7 +844,7 @@ const completeWorkGraph = async (req: Request, res: Response) => {
       year = currentDate.getFullYear().toString();
     }
     console.log(year);
-    
+
     const startDate = new Date(`${year}-01-01`);
     const endDate = new Date(`${year}-12-31`);
 
@@ -822,11 +863,11 @@ const completeWorkGraph = async (req: Request, res: Response) => {
     ]);
 
     const monthlyData = Array.from({ length: 12 }, (_, i) => {
-      const month = new Date(year , i, 1).toLocaleString("en-us",{
-        month: "short"
+      const month = new Date(year, i, 1).toLocaleString("en-us", {
+        month: "short",
       });
       // console.log(month);
-      
+
       const total = data.reduce((acc, curr) => {
         const workCompleteMonth = new Date(curr.createdAt).getMonth();
         if (workCompleteMonth === i) {
@@ -834,15 +875,15 @@ const completeWorkGraph = async (req: Request, res: Response) => {
         } else {
           return acc;
         }
-      },0)
-      return {name: month, value: total};
+      }, 0);
+      return { name: month, value: total };
     });
     res.status(200).json(
       myResponse({
         statusCode: 200,
         status: "success",
         message: "Data fetched successfully",
-        data: monthlyData
+        data: monthlyData,
       })
     );
   } catch (error) {
@@ -856,7 +897,6 @@ const completeWorkGraph = async (req: Request, res: Response) => {
     );
   }
 };
-
 
 const adminStatus = async (req: Request, res: Response) => {
   try {
@@ -872,73 +912,75 @@ const adminStatus = async (req: Request, res: Response) => {
     }
 
     const totalWorkDone = await AppointmentModel.countDocuments({
-      appointmentStatus: "COMPLETED"});
-      
+      appointmentStatus: "COMPLETED",
+    });
+
     const totalManager = await userModel.countDocuments({
-      role: "MANAGER"});
-    
-      const totalEmployee = await userModel.countDocuments({
-        role: "EMPLOYEE"});
+      role: "MANAGER",
+    });
 
-      const  getPoolCleaning = await AppointmentModel.find({appointmentStatus:"COMPLETED"}).populate([
-        {
-          path: "service",
-        }
-      ])
-      console.log("========",getPoolCleaning);
-      
-      const totalPoolCleaning = getPoolCleaning.filter((item: any) => item.service.type === "POOL_CLEANING").length || 0;
-      
-      const getPoolRemodeling = await AppointmentModel.find({appointmentStatus:"COMPLETED"}).populate([
-        {
-          path: "service",
-        }
-      ]) 
+    const totalEmployee = await userModel.countDocuments({
+      role: "EMPLOYEE",
+    });
 
-      console.log("=++++",getPoolRemodeling);
-      
-      const totalPoolRemodeling = getPoolRemodeling.filter((item: any) => item.service.type === "POOL_REMODELING").length || 0;
-
-      console.log("=======************",totalPoolRemodeling);
-      
-
-
-
-      const getSpa = await AppointmentModel.find({
-        appointmentStatus: "COMPLETED"
-      }).populate({
+    const getPoolCleaning = await AppointmentModel.find({
+      appointmentStatus: "COMPLETED",
+    }).populate([
+      {
         path: "service",
+      },
+    ]);
+    console.log("========", getPoolCleaning);
+
+    const totalPoolCleaning =
+      getPoolCleaning.filter(
+        (item: any) => item.service.type === "POOL_CLEANING"
+      ).length || 0;
+
+    const getPoolRemodeling = await AppointmentModel.find({
+      appointmentStatus: "COMPLETED",
+    }).populate([
+      {
+        path: "service",
+      },
+    ]);
+
+    console.log("=++++", getPoolRemodeling);
+
+    const totalPoolRemodeling =
+      getPoolRemodeling.filter(
+        (item: any) => item.service.type === "POOL_REMODELING"
+      ).length || 0;
+
+    console.log("=======************", totalPoolRemodeling);
+
+    const getSpa = await AppointmentModel.find({
+      appointmentStatus: "COMPLETED",
+    }).populate({
+      path: "service",
+    });
+
+    const totalSpaCount =
+      getSpa?.filter((item: any) => item.service.type === "SPA_SERVICE")
+        .length || 0;
+
+    console.log("=======++++++++++++", totalSpaCount);
+
+    res.status(200).json(
+      myResponse({
+        statusCode: 200,
+        status: "success",
+        message: "Data fetched successfully",
+        data: {
+          totalWorkDone: totalWorkDone || 0,
+          totalManager: totalManager || 0,
+          totalEmployee: totalEmployee || 0,
+          totalPoolCleaning: totalPoolRemodeling,
+          totalPoolRemodeling: totalPoolCleaning,
+          totalSpa: totalSpaCount,
+        },
       })
-
-      
-      
-
-     const totalSpaCount = getSpa?.filter((item: any) => item.service.type === "SPA_SERVICE").length || 0;
-
-     console.log("=======++++++++++++",totalSpaCount);
-     
-
-     
-     
-      
-      
-      res.status(200).json(
-        myResponse({
-          statusCode: 200,
-          status: "success",
-          message: "Data fetched successfully",
-          data: {
-            totalWorkDone: totalWorkDone|| 0,
-            totalManager : totalManager || 0, 
-            totalEmployee: totalEmployee || 0,
-            totalPoolCleaning: totalPoolRemodeling ,
-            totalPoolRemodeling: totalPoolCleaning ,
-            totalSpa:totalSpaCount 
-          }
-        })
-      );
-
-
+    );
   } catch (error) {
     console.log("Error in adminStatus controller: ", error);
     res.status(500).json(
@@ -949,7 +991,7 @@ const adminStatus = async (req: Request, res: Response) => {
       })
     );
   }
-}
+};
 
 const recentServiceRequest = async (req: Request, res: Response) => {
   try {
@@ -966,10 +1008,14 @@ const recentServiceRequest = async (req: Request, res: Response) => {
 
     const query = req.query.query as string;
 
-  
-
-    const getRecentAppointment = (await AppointmentModel.find(query ? {name: { $regex: query, $options: "i" }}:{}).sort({createdAt: -1}).populate("user service")).splice(0,5);
-    if(getRecentAppointment.length === 0){
+    const getRecentAppointment = (
+      await AppointmentModel.find(
+        query ? { name: { $regex: query, $options: "i" } } : {}
+      )
+        .sort({ createdAt: -1 })
+        .populate("user service")
+    ).splice(0, 5);
+    if (getRecentAppointment.length === 0) {
       return res.status(400).json(
         myResponse({
           statusCode: 400,
@@ -984,7 +1030,7 @@ const recentServiceRequest = async (req: Request, res: Response) => {
         statusCode: 200,
         status: "success",
         message: "Data fetched successfully",
-        data: getRecentAppointment
+        data: getRecentAppointment,
       })
     );
   } catch (error) {
@@ -994,13 +1040,10 @@ const recentServiceRequest = async (req: Request, res: Response) => {
         statusCode: 500,
         status: "failed",
         message: "Internal Server Error",
-      })  
+      })
     );
   }
-}
-
-
-
+};
 
 export {
   getAllAppointment,
@@ -1016,5 +1059,5 @@ export {
   getAllEmployeeAttendance,
   completeWorkGraph,
   adminStatus,
-  recentServiceRequest
+  recentServiceRequest,
 };
