@@ -33,6 +33,17 @@ const createManager = async (req: Request, res: Response) => {
         })
       );
     }
+    const existingUser = await userModel.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json(
+        myResponse({
+          statusCode: 400,
+          status: "failed",
+          message: "Email already exists",
+        })
+      );
+    }
+      
     const user = await userModel.create({
       name,
       email,
