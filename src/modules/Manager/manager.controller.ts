@@ -566,7 +566,8 @@ const assignEmployee = async (req: Request, res: Response) => {
     }
 
     const updateAppointmentStatus = await AppointmentModel.findByIdAndUpdate(
-      { _id: appointmentId },
+      // { _id: appointmentId },
+      appointmentId,
       {
         appointmentStatus: "ASSIGNED",
       },
@@ -584,29 +585,29 @@ const assignEmployee = async (req: Request, res: Response) => {
       );
     }
 
-    const employeeName = await userModel.findById(employeeId).select("name");
+    const employeeDetails = await userModel.findById(employeeId).select("name email");
 
-    if (!employeeName) {
-      return res.status(400).json(
-        myResponse({
-          statusCode: 400,
-          status: "failed",
-          message: "Failed to fetch employee name",
-        })
-      );
+
+    if (!employeeDetails || !employeeDetails.email) {
+      console.error("Error: Employee email is missing from the database!");
+      return res.status(400).json(myResponse({
+        statusCode: 400,
+        status: "failed",
+        message: "Employee email not found",
+      }));
     }
 
     const notificationForEmployee = await notificationModel.create({
-      message: `${req.user.name} appointment has been assigned to ${employeeName.name}`,
+      message: `${req.user.name} appointment has been assigned to ${employeeDetails.name}`,
       role: "EMPLOYEE",
       recipientId: employeeId,
     });
 
-    const html = `
+    const html =`
   <body style="background-color: #f3f4f6; padding: 1rem; font-family: Arial, sans-serif;">
     <div style="max-width: 24rem; margin: 0 auto; background-color: #fff; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
       <h1 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 1rem;">New Task Assigned</h1>
-      <h2 style="font-size: 1.25rem; font-weight: 500; margin-bottom: 1rem;">Hello ${employeeName.name},</h2>
+      <h2 style="font-size: 1.25rem; font-weight: 500; margin-bottom: 1rem;">Hello ${employeeDetails.name},</h2>
       <p style="color: #4b5563; margin-bottom: 1rem;">You have been assigned a new task by <strong>${req.user.name}</strong>.</p>
       <p style="color: #6b7280; font-size: 0.8rem; margin-top: 1rem; text-align: center;">If you have any questions, please contact your manager.</p>
     </div>
@@ -616,7 +617,7 @@ const assignEmployee = async (req: Request, res: Response) => {
     io.emit(`notification::${employeeId}`, notificationForEmployee);
     // console.log(socket);
     emailWithNodeMailer({
-      email:`${employeeName.email}`,
+      email:`${employeeDetails.email}`,
       subject: "New Task Assigned",
       html,
     });

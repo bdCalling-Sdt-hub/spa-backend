@@ -13,7 +13,6 @@ const transporter = nodemailer.createTransport({
 });
 
 
-
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const handleEmailError = async (error: any, msg: any) => {
@@ -32,7 +31,12 @@ const handleEmailError = async (error: any, msg: any) => {
     }
 
 export const emailWithNodeMailer = async ({ email, subject, html }: { email: string, subject: string, html: string }) => {
-  const mailOptions = {
+    if (!email || email.trim() === "") {
+        console.error("Error: Recipient email is missing or empty!");
+        return;
+      }
+    
+    const mailOptions = {
     from: config.smtpUsername,
     to: email,
     subject: subject,
