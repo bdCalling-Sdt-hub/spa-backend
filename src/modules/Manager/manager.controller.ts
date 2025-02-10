@@ -553,8 +553,6 @@ const assignEmployee = async (req: Request, res: Response) => {
       userId,
     });
 
-    
-
     if (!assignEmployee) {
       return res.status(400).json(
         myResponse({
@@ -585,16 +583,21 @@ const assignEmployee = async (req: Request, res: Response) => {
       );
     }
 
-    const employeeDetails = await userModel.findById(employeeId).select("name email");
+    const employeeDetails = await userModel
+      .findById(employeeId)
+      .select("name email");
 
+    console.log("Important service=======>", employeeDetails);
 
     if (!employeeDetails || !employeeDetails.email) {
       console.error("Error: Employee email is missing from the database!");
-      return res.status(400).json(myResponse({
-        statusCode: 400,
-        status: "failed",
-        message: "Employee email not found",
-      }));
+      return res.status(400).json(
+        myResponse({
+          statusCode: 400,
+          status: "failed",
+          message: "Employee email not found",
+        })
+      );
     }
 
     const notificationForEmployee = await notificationModel.create({
@@ -603,7 +606,7 @@ const assignEmployee = async (req: Request, res: Response) => {
       recipientId: employeeId,
     });
 
-    const html =`
+    const html = `
   <body style="background-color: #f3f4f6; padding: 1rem; font-family: Arial, sans-serif;">
     <div style="max-width: 24rem; margin: 0 auto; background-color: #fff; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
       <h1 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 1rem;">New Task Assigned</h1>
@@ -617,7 +620,7 @@ const assignEmployee = async (req: Request, res: Response) => {
     io.emit(`notification::${employeeId}`, notificationForEmployee);
     // console.log(socket);
     emailWithNodeMailer({
-      email:`${employeeDetails.email}`,
+      email: `${employeeDetails.email}`,
       subject: "New Task Assigned",
       html,
     });
