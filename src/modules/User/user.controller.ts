@@ -542,4 +542,5 @@ const deleteUser = async (req: Request, res: Response) => {
   }
 }
 
+
 export { signUp, verifyCode, resendOtp, forgotPassword, setPassword, signIn,deleteUser };

@@ -11,6 +11,7 @@ import { io } from "../../server";
 import questionModel from "../services/model/question.model";
 import submitWorkModel from "./model/submitWork.model";
 import userModel from "../User/user.model";
+import { log } from "console";
 
 
 const calculateTotalWorkingHours = (
@@ -850,7 +851,7 @@ const workUploadPhoto = async (req: Request, res: Response) => {
       });
     }
 
-    console.log(images);
+    console.log("=============>>>>ahad",images);
 
     const workSubmission = await submitWorkModel.findByIdAndUpdate(
       workSubmissionId,
@@ -858,18 +859,20 @@ const workUploadPhoto = async (req: Request, res: Response) => {
         images,
       }
     );
-
+log("workSubmission",workSubmission);
     const getAssignAppointment = await employeeAssignModel.findOne({
       _id: workSubmission?.assignAppointmentId,
       employeeId: req.userId,
     });
+    console.log("getAssignAppointment",getAssignAppointment);
+    
 
     if (!getAssignAppointment) {
       return res.status(400).json(
         myResponse({
           statusCode: 400,
           status: "failed",
-          message: "getAssignAppointment not found",
+          message: "Get Assign Appointment not found",
         })
       );
     }

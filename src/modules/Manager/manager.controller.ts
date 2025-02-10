@@ -10,6 +10,7 @@ import notificationModel from "./Model/notification.model";
 import { io } from "../../server";
 import unableServiceModel from "../Employee/model/unableService.model";
 import mongoose, { get } from "mongoose";
+import { emailWithNodeMailer } from "../../service/notificationByEmail";
 
 const createManager = async (req: Request, res: Response) => {
   try {
@@ -540,7 +541,7 @@ const assignEmployee = async (req: Request, res: Response) => {
         myResponse({
           statusCode: 400,
           status: "failed",
-          message: "Appointment is not pending",
+          message: "Appointment is Already Assigned",
         })
       );
     }
@@ -551,6 +552,8 @@ const assignEmployee = async (req: Request, res: Response) => {
       appointmentId,
       userId,
     });
+
+    
 
     if (!assignEmployee) {
       return res.status(400).json(
@@ -599,8 +602,24 @@ const assignEmployee = async (req: Request, res: Response) => {
       recipientId: employeeId,
     });
 
+    const html = `
+  <body style="background-color: #f3f4f6; padding: 1rem; font-family: Arial, sans-serif;">
+    <div style="max-width: 24rem; margin: 0 auto; background-color: #fff; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+      <h1 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 1rem;">New Task Assigned</h1>
+      <h2 style="font-size: 1.25rem; font-weight: 500; margin-bottom: 1rem;">Hello ${employeeName.name},</h2>
+      <p style="color: #4b5563; margin-bottom: 1rem;">You have been assigned a new task by <strong>${req.user.name}</strong>.</p>
+      <p style="color: #6b7280; font-size: 0.8rem; margin-top: 1rem; text-align: center;">If you have any questions, please contact your manager.</p>
+    </div>
+  </body>
+`;
+
     io.emit(`notification::${employeeId}`, notificationForEmployee);
     // console.log(socket);
+    emailWithNodeMailer({
+      email:`${employeeName.email}`,
+      subject: "New Task Assigned",
+      html,
+    });
 
     return res.status(200).json(
       myResponse({
