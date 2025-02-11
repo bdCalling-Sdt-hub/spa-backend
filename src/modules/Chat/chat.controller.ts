@@ -123,9 +123,28 @@ const getAllChatForUser = async (req: Request, res: Response) => {
         })
       )
     }
+    const { search } = req.query;
+
+    let query : any = {participants: { $in: [userId] }};
+
+    if(search) {
+      const users = await userModel.find({
+        name: { $regex: search as string, $options: "i" }
+        
+      })
+      const userIds = users.map(user => user._id);
+
+      query = {
+        participants: { $in: [userId] },
+        $or: [
+            { participants: { $in: userIds } } // Match if any participant's name matches
+        ]
+    };
+}
+
 
     const chats = await chatModel
-      .find({ participants: { $in: [userId] } })
+      .find(query)
       .populate([
         {
           path: "participants",
@@ -134,6 +153,8 @@ const getAllChatForUser = async (req: Request, res: Response) => {
           path: "lastMessage",
         }
       ]).sort({updatedAt: -1 });
+
+
       if(!chats) {
         return res.status(404).json(
           myResponse({
