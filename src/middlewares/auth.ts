@@ -12,6 +12,7 @@ declare module "express-serve-static-core" {
     user?: any;
     userRole?: string;
     userId?: Types.ObjectId;
+    email?: string;
   }
 }
 
@@ -79,6 +80,7 @@ const isValidate = async (req: Request, res: Response, next: NextFunction) => {
     req.user = user;
     req.userId = user._id;
     req.userRole = user.role;
+    req.email = user.email;
     next();
   } catch (error) {
     console.log("IsVerified Middleware Error", error);

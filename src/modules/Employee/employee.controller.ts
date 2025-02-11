@@ -12,6 +12,8 @@ import questionModel from "../services/model/question.model";
 import submitWorkModel from "./model/submitWork.model";
 import userModel from "../User/user.model";
 import { log } from "console";
+import { emailWithNodeMailer } from "../../service/notificationByEmail";
+import { Types } from "mongoose";
 
 
 const calculateTotalWorkingHours = (
@@ -350,7 +352,14 @@ const unableServiceRequest = async (req: Request, res: Response) => {
       );
     }
 
-    const { assignAppointmentId, reason, managerId, employeeId } = req.body;
+    interface IUnableService {
+      assignAppointmentId: Types.ObjectId;
+      reason: string;
+      managerId: Types.ObjectId;
+      employeeId: Types.ObjectId;
+    }
+
+    const { assignAppointmentId, reason, managerId, employeeId }: IUnableService = req.body;
 
     if (!assignAppointmentId || !reason || !managerId || !employeeId) {
       return res.status(400).json(
@@ -392,12 +401,107 @@ const unableServiceRequest = async (req: Request, res: Response) => {
         data: createUnableService,
       })
     );
+    const html = `
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Service Request Update</title>
+      <style>
+          body {
+              font-family: Arial, sans-serif;
+              background-color: #f4f7fa;
+              color: #333;
+              margin: 0;
+              padding: 0;
+          }
+          .container {
+              max-width: 600px;
+              margin: 0 auto;
+              padding: 20px;
+              background-color: #ffffff;
+              border-radius: 8px;
+              box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          }
+          .header {
+              text-align: center;
+              padding: 20px;
+              background-color: #4CAF50;
+              color: #fff;
+              border-radius: 8px 8px 0 0;
+          }
+          .header h1 {
+              font-size: 24px;
+              margin: 0;
+          }
+          .content {
+              margin-top: 20px;
+              padding: 20px;
+              font-size: 16px;
+              line-height: 1.5;
+              color: #555;
+          }
+          .content p {
+              margin: 10px 0;
+          }
+          .reason {
+              font-weight: bold;
+              color: #e74c3c;
+          }
+          .footer {
+              text-align: center;
+              margin-top: 30px;
+              font-size: 12px;
+              color: #888;
+          }
+          .footer a {
+              color: #4CAF50;
+              text-decoration: none;
+          }
+          .button {
+              display: inline-block;
+              padding: 10px 20px;
+              background-color: #4CAF50;
+              color: #fff;
+              font-weight: bold;
+              border-radius: 5px;
+              text-decoration: none;
+              margin-top: 20px;
+          }
+      </style>
+  </head>
+  <body>
+      <div class="container">
+          <div class="header">
+              <h1>Service Request Update</h1>
+          </div>
+          <div class="content">
+              <p>Dear <strong>${req.user.name}</strong>,</p>
+              <p>We regret to inform you that the service request you attempted to create could not be processed. The reason for this is as follows:</p>
+              <p class="reason">${reason}</p>
+              <p>If you have any questions or need assistance, please don't hesitate to contact us.</p>
+              <a href="mailto:support@example.com" class="button">Contact Support</a>
+          </div>
+         
+      </div>
+  </body>
+  </html>
+`;
+
 
     const notificationForEmployee = await notificationModel.create({
       message: `${req.user.name} Unable service request created. Reason: ${reason}`,
       role: "MANAGER",
       recipientId: verifyAssignAppointment.managerId,
     });
+
+    emailWithNodeMailer({
+          email: `${req.email}`,
+          subject: "Unable Service Request",
+          html,
+        });
+    
 
     io.emit(
       `notification::${verifyAssignAppointment.managerId}`,
